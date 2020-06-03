@@ -361,3 +361,6 @@ FodyWeavers.xsd
 
 # External libraries
 libs/
+
+# Original game assets
+assets/

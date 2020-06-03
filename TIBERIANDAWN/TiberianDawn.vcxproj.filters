@@ -615,9 +615,6 @@
     <ClInclude Include="Resource\resource.h">
       <Filter>Source Files\Resources</Filter>
     </ClInclude>
-    <ClInclude Include="DLLInterface.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="SIDEBARGlyphx.H">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -625,6 +622,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="RULES.H">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DLLInterface.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
