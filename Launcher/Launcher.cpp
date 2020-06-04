@@ -60,8 +60,71 @@ int main(int argc, char* args[])
 {
 	printf("Loaded CNC DLL interface version %i\n", CNC_Version(0x100));
 
-	printf("Calling CNC_Init()\n");
+	printf("Calling CNC_Init\n");
 	CNC_Init("", &cnc_event_callback);
+
+	printf("Calling CNC_Start_Instance\n");
+	CNC_Start_Instance(1, 10, "ALLY", "GAME_NORMAL", ".", NULL, NULL);
+
+	SDL_Init(SDL_INIT_VIDEO);
+
+	SDL_Window* game_window = SDL_CreateWindow("Red Alert SDL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 720, 864, SDL_WINDOW_SHOWN);
+
+	SDL_Renderer* renderer = SDL_CreateRenderer(game_window, -1, 0);
+
+	SDL_Surface* game_surface = SDL_CreateRGBSurface(0, 720, 864, 8, 0, 0, 0, 0);
+	game_surface = SDL_ConvertSurfaceFormat(game_surface, SDL_PIXELFORMAT_INDEX8, 0);
+
+	SDL_Surface* helper_surface = SDL_CreateRGBSurface(0, 720, 864, 32, 0, 0, 0, 0);
+	helper_surface = SDL_ConvertSurfaceFormat(helper_surface, SDL_PIXELFORMAT_RGBA8888, 0);
+
+	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 720, 864);
+
+	SDL_Event event;
+	bool quit = false;
+	while (CNC_Advance_Instance(0))
+	{
+		while (SDL_PollEvent(&event) != 0)
+		{
+			if (event.type == SDL_QUIT)
+			{
+				quit = true;
+			}
+		}
+		if (quit) break;
+
+		unsigned int width = 0;
+		unsigned int height = 0;
+		if (CNC_Get_Visible_Page((unsigned char*)game_surface->pixels, width, height))
+		{
+			unsigned char palette[256][3];
+			CNC_Get_Palette(palette);
+
+			SDL_Color c[256];
+
+			for (Uint8 i = 255; i--;) {
+				c[i].r = palette[i][0]<<2;
+				c[i].g = palette[i][1]<<2;
+				c[i].b = palette[i][2]<<2;
+				c[i].a = 255;
+			}
+
+			SDL_SetPaletteColors(game_surface->format->palette, c, 0, 256);
+
+			SDL_BlitSurface(game_surface, NULL, helper_surface, NULL);
+
+			SDL_UpdateTexture(texture, NULL, helper_surface->pixels, helper_surface->pitch);
+
+			SDL_RenderClear(renderer);
+			SDL_RenderCopy(renderer, texture, NULL, NULL);
+			SDL_RenderPresent(renderer);
+		}
+	}
+
+	SDL_DestroyTexture(texture);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(game_window);
+	SDL_Quit();
 
 	return 0;
 }
