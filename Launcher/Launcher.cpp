@@ -1,8 +1,11 @@
 #include <SDL.h>
 #include <stdio.h>
 #include <windows.h>
+#include <WinUser.h>
 #include <DLLInterface.h>
 #include "CncDll.h"
+
+unsigned char game_buffer[0xFFFFFFF];
 
 void cnc_event_callback(const EventCallbackStruct& event)
 {
@@ -27,7 +30,7 @@ void cnc_event_callback(const EventCallbackStruct& event)
 			printf("Unhandled event: CALLBACK_EVENT_MOVIE\n");
 			break;
 		case (CALLBACK_EVENT_MESSAGE):
-			printf("Unhandled event: CALLBACK_EVENT_MESSAGE\n");
+			printf("Incoming message: %s\n", event.Message.Message);
 			break;
 		case (CALLBACK_EVENT_UPDATE_MAP_CELL):
 			printf("Unhandled event: CALLBACK_EVENT_UPDATE_MAP_CELL\n");
@@ -56,6 +59,9 @@ void cnc_event_callback(const EventCallbackStruct& event)
 	}
 }
 
+#define WIDTH 1280
+#define HEIGHT 720
+
 int main(int argc, char* args[])
 {
 	printf("Loaded CNC DLL interface version %i\n", CNC_Version(0x100));
@@ -68,52 +74,122 @@ int main(int argc, char* args[])
 
 	SDL_Init(SDL_INIT_VIDEO);
 
-	SDL_Window* game_window = SDL_CreateWindow("Red Alert SDL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 720, 864, SDL_WINDOW_SHOWN);
+	SDL_Window* game_window = SDL_CreateWindow("Red Alert SDL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN);
+	ShowCursor(TRUE);
 
 	SDL_Renderer* renderer = SDL_CreateRenderer(game_window, -1, 0);
+	SDL_Surface* game_surface;
+	SDL_Surface* intermediate_surface = SDL_CreateRGBSurface(0, WIDTH, HEIGHT, 32, 0, 0, 0, 0);
+	SDL_SetSurfaceBlendMode(intermediate_surface, SDL_BLENDMODE_NONE);
+	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);\
 
-	SDL_Surface* game_surface = SDL_CreateRGBSurface(0, 720, 864, 8, 0, 0, 0, 0);
-	game_surface = SDL_ConvertSurfaceFormat(game_surface, SDL_PIXELFORMAT_INDEX8, 0);
+	float pixel_scale = 2;
 
-	SDL_Surface* helper_surface = SDL_CreateRGBSurface(0, 720, 864, 32, 0, 0, 0, 0);
-	helper_surface = SDL_ConvertSurfaceFormat(helper_surface, SDL_PIXELFORMAT_RGBA8888, 0);
+	SDL_Rect viewport;
+	viewport.x = 0;
+	viewport.y = 0;
+	viewport.w = WIDTH / pixel_scale;
+	viewport.h = HEIGHT / pixel_scale;
 
-	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 720, 864);
+	unsigned char palette[256][3];
+	CNC_Get_Palette(palette);
+	SDL_Color c[256];
+	for (Uint8 i = 255; i--;) {
+		c[i].r = (palette[i][0] << 2) | (palette[i][0] >> 6);
+		c[i].g = (palette[i][1] << 2) | (palette[i][1] >> 6);
+		c[i].b = (palette[i][2] << 2) | (palette[i][2] >> 6);
+		c[i].a = 255;
+	}
+
+	Uint32 lastUpdate = SDL_GetTicks();
 
 	SDL_Event event;
 	bool quit = false;
-	while (CNC_Advance_Instance(0))
+	bool dragging = false;
+	int drag_mousepos[2];
+	int drag_viewportpos[2];
+	while (!quit)
 	{
 		while (SDL_PollEvent(&event) != 0)
 		{
+			if (event.type == SDL_KEYDOWN)
+			{
+				if (event.key.keysym.sym == SDLK_ESCAPE)
+				{
+					quit = true;
+				}
+			}
+			if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == 2)
+			{
+				dragging = true;
+				SDL_GetMouseState(&drag_mousepos[0], &drag_mousepos[1]);
+				drag_viewportpos[0] = viewport.x;
+				drag_viewportpos[1] = viewport.y;
+			}
+			if (event.type == SDL_MOUSEBUTTONUP && event.button.button == 2)
+			{
+				dragging = false;
+			}
+			if (event.type == SDL_MOUSEWHEEL)
+			{
+				if (event.wheel.y > 0) // Scroll up
+				{
+					// Zoom in
+					pixel_scale *= 2;
+					viewport.x += viewport.w / 4;
+					viewport.y += viewport.h / 4;
+					viewport.w /= 2;
+					viewport.h /= 2;
+				}
+				else if (event.wheel.y < 0) // Scroll down
+				{
+					// Zoom out
+					pixel_scale /= 2;
+					viewport.w *= 2;
+					viewport.h *= 2;
+					viewport.x -= viewport.w / 4;
+					viewport.y -= viewport.h / 4;
+				}
+
+			}
 			if (event.type == SDL_QUIT)
 			{
 				quit = true;
 			}
 		}
-		if (quit) break;
+
+		if (dragging)
+		{
+			int mousex;
+			int mousey;
+			SDL_GetMouseState(&mousex, &mousey);
+			int deltax = (mousex - drag_mousepos[0]) / pixel_scale;
+			int deltay = (mousey - drag_mousepos[1]) / pixel_scale;
+			viewport.x = drag_viewportpos[0] - deltax;
+			viewport.y = drag_viewportpos[1] - deltay;
+		}
+
+		Uint32 currTime = SDL_GetTicks();
+		if (currTime - lastUpdate > 1000/30)
+		{
+			if (!CNC_Advance_Instance(0)) quit = true;
+			lastUpdate = currTime;
+		}
 
 		unsigned int width = 0;
 		unsigned int height = 0;
-		if (CNC_Get_Visible_Page((unsigned char*)game_surface->pixels, width, height))
+		if (CNC_Get_Visible_Page(game_buffer, width, height))
 		{
-			unsigned char palette[256][3];
-			CNC_Get_Palette(palette);
-
-			SDL_Color c[256];
-
-			for (Uint8 i = 255; i--;) {
-				c[i].r = palette[i][0]<<2;
-				c[i].g = palette[i][1]<<2;
-				c[i].b = palette[i][2]<<2;
-				c[i].a = 255;
-			}
-
+			game_surface = SDL_CreateRGBSurfaceFrom(game_buffer, width, height, 8, width, NULL, NULL, NULL, NULL);
+			SDL_SetSurfaceBlendMode(game_surface, SDL_BLENDMODE_NONE);
 			SDL_SetPaletteColors(game_surface->format->palette, c, 0, 256);
+			SDL_Surface* optimized_surface = SDL_ConvertSurface(game_surface, intermediate_surface->format, 0);
+			SDL_FillRect(intermediate_surface, NULL, SDL_MapRGB(intermediate_surface->format, 0, 0, 0));
+			SDL_BlitScaled(optimized_surface, &viewport, intermediate_surface, NULL);
+			SDL_FreeSurface(game_surface);
+			SDL_FreeSurface(optimized_surface);
 
-			SDL_BlitSurface(game_surface, NULL, helper_surface, NULL);
-
-			SDL_UpdateTexture(texture, NULL, helper_surface->pixels, helper_surface->pitch);
+			SDL_UpdateTexture(texture, NULL, intermediate_surface->pixels, intermediate_surface->pitch);
 
 			SDL_RenderClear(renderer);
 			SDL_RenderCopy(renderer, texture, NULL, NULL);
