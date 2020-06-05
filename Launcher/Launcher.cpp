@@ -23,10 +23,10 @@ void cnc_event_callback(const EventCallbackStruct& event)
         printf("Unhandled event: CALLBACK_EVENT_INVALID\n");
         break;
     case (CALLBACK_EVENT_SOUND_EFFECT):
-        printf("Unhandled event: CALLBACK_EVENT_SOUND_EFFECT\n");
+        printf("Sound effect: %s\n", event.SoundEffect.SoundEffectName);
         break;
     case (CALLBACK_EVENT_SPEECH):
-        printf("Unhandled event: CALLBACK_EVENT_SPEECH\n");
+        printf("Speech: %s\n", event.Speech.SpeechName);
         break;
     case (CALLBACK_EVENT_GAME_OVER):
         printf("Unhandled event: CALLBACK_EVENT_GAME_OVER\n");
@@ -35,7 +35,7 @@ void cnc_event_callback(const EventCallbackStruct& event)
         printf("DEBUG PRINT: %s\n", event.DebugPrint.PrintString);
         break;
     case (CALLBACK_EVENT_MOVIE):
-        printf("Unhandled event: CALLBACK_EVENT_MOVIE\n");
+        printf("Play movie: %s\n", event.Movie.MovieName);
         break;
     case (CALLBACK_EVENT_MESSAGE):
         printf("Incoming message: %s\n", event.Message.Message);
@@ -44,7 +44,7 @@ void cnc_event_callback(const EventCallbackStruct& event)
         printf("Unhandled event: CALLBACK_EVENT_UPDATE_MAP_CELL\n");
         break;
     case (CALLBACK_EVENT_ACHIEVEMENT):
-        printf("Unhandled event: CALLBACK_EVENT_ACHIEVEMENT\n");
+        printf("Achievement unlocked: %s, %s\n", event.Achievement.AchievementType, event.Achievement.AchievementReason);
         break;
     case (CALLBACK_EVENT_STORE_CARRYOVER_OBJECTS):
         printf("Unhandled event: CALLBACK_EVENT_STORE_CARRYOVER_OBJECTS\n");
