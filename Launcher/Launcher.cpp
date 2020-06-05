@@ -5,11 +5,15 @@
 #include <DLLInterface.h>
 #include "CncDll.h"
 
+#include "Rubberband.h"
+
 unsigned char game_buffer[0xFFFFFFF];
 
 float pixel_scale = 2;
 
 SDL_Rect viewport;
+
+Rubberband rubberband;
 
 void cnc_event_callback(const EventCallbackStruct& event)
 {
@@ -169,6 +173,14 @@ int main(int argc, char* args[])
 					quit = true;
 				}
 			}
+			if (event.type == SDL_MOUSEMOTION)
+			{
+				int mapx;
+				int mapy;
+				mouse_to_map_coords(event.motion.x, event.motion.y, mapx, mapy);
+				rubberband.mouseMove(mapx, mapy);
+				CNC_Handle_Input(INPUT_REQUEST_MOUSE_MOVE, NULL, 0, mapx, mapy, NULL, NULL);
+			}
 			if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == 2)
 			{
 				dragging = true;
@@ -188,7 +200,25 @@ int main(int argc, char* args[])
 				int mapx;
 				int mapy;
 				mouse_to_map_coords(mousex, mousey, mapx, mapy);
-				CNC_Handle_Input(INPUT_REQUEST_MOUSE_LEFT_CLICK, NULL, 0, mapx, mapy, NULL, NULL);
+				SDL_Rect selection;
+				if (rubberband.mouseUp(selection))
+				{
+					CNC_Handle_Input(INPUT_REQUEST_MOUSE_AREA, NULL, 0, selection.x, selection.y, selection.x + selection.w, selection.y + selection.h);
+				}
+				else
+				{
+					CNC_Handle_Input(INPUT_REQUEST_MOUSE_LEFT_CLICK, NULL, 0, mapx, mapy, NULL, NULL);
+				}
+			}
+			if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == 1)
+			{
+				int mousex;
+				int mousey;
+				SDL_GetMouseState(&mousex, &mousey);
+				int mapx;
+				int mapy;
+				mouse_to_map_coords(mousex, mousey, mapx, mapy);
+				rubberband.mouseDown(mapx, mapy);
 			}
 			if (event.type == SDL_MOUSEBUTTONUP && event.button.button == 3)
 			{
@@ -264,6 +294,7 @@ int main(int argc, char* args[])
 			SDL_SetSurfaceBlendMode(game_surface, SDL_BLENDMODE_NONE);
 			SDL_SetPaletteColors(game_surface->format->palette, c, 0, 256);
 			SDL_Surface* optimized_surface = SDL_ConvertSurface(game_surface, intermediate_surface->format, 0);
+			rubberband.draw(optimized_surface);
 			SDL_FillRect(intermediate_surface, NULL, SDL_MapRGB(intermediate_surface->format, 0, 0, 0));
 			SDL_BlitScaled(optimized_surface, &viewport, intermediate_surface, NULL);
 			SDL_FreeSurface(game_surface);

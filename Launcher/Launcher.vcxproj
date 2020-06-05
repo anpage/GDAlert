@@ -164,6 +164,7 @@ xcopy /y /d "$(OutDir)\*" "$(ProjectDir)..\assets\RedAlert"</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Launcher.cpp" />
+    <ClCompile Include="Rubberband.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\REDALERT\RedAlert.vcxproj">
@@ -175,6 +176,7 @@ xcopy /y /d "$(OutDir)\*" "$(ProjectDir)..\assets\RedAlert"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CncDll.h" />
+    <ClInclude Include="Rubberband.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
