@@ -80,9 +80,46 @@ int main(int argc, char* args[])
 	CNC_Init("", &cnc_event_callback);
 
 	CNCRulesDataStruct rules;
-	rules.Difficulties[0].GroundspeedBias = 1;
-	rules.Difficulties[1].GroundspeedBias = 1;
-	rules.Difficulties[2].GroundspeedBias = 1;
+	// Rules taken from original game
+	// Easy
+	rules.Difficulties[0].FirepowerBias   = 1.000f;
+	rules.Difficulties[0].GroundspeedBias = 1.200f;
+	rules.Difficulties[0].AirspeedBias    = 1.200f;
+	rules.Difficulties[0].ArmorBias       = 1.200f;
+	rules.Difficulties[0].ROFBias         = 0.800f;
+	rules.Difficulties[0].CostBias        = 0.800f;
+	rules.Difficulties[0].BuildSpeedBias  = 0.800f;
+	rules.Difficulties[0].RepairDelay     = 0.001f;
+	rules.Difficulties[0].BuildDelay      = 0.001f;
+	rules.Difficulties[0].IsBuildSlowdown = false;
+	rules.Difficulties[0].IsWallDestroyer = true;
+	rules.Difficulties[0].IsContentScan   = true;
+	// Medium
+	rules.Difficulties[1].FirepowerBias   = 1.000f;
+	rules.Difficulties[1].GroundspeedBias = 1.000f;
+	rules.Difficulties[1].AirspeedBias    = 1.000f;
+	rules.Difficulties[1].ArmorBias       = 1.000f;
+	rules.Difficulties[1].ROFBias         = 1.000f;
+	rules.Difficulties[1].CostBias        = 1.000f;
+	rules.Difficulties[1].BuildSpeedBias  = 1.000f;
+	rules.Difficulties[1].RepairDelay     = 0.020f;
+	rules.Difficulties[1].BuildDelay      = 0.030f;
+	rules.Difficulties[1].IsBuildSlowdown = true;
+	rules.Difficulties[1].IsWallDestroyer = true;
+	rules.Difficulties[1].IsContentScan   = true;
+	//Hard
+	rules.Difficulties[2].FirepowerBias   = 1.000f;
+	rules.Difficulties[2].GroundspeedBias = 0.800f;
+	rules.Difficulties[2].AirspeedBias    = 0.800f;
+	rules.Difficulties[2].ArmorBias       = 0.800f;
+	rules.Difficulties[2].ROFBias         = 1.200f;
+	rules.Difficulties[2].CostBias        = 1.000f;
+	rules.Difficulties[2].BuildSpeedBias  = 1.000f;
+	rules.Difficulties[2].RepairDelay     = 0.050f;
+	rules.Difficulties[2].BuildDelay      = 0.100f;
+	rules.Difficulties[2].IsBuildSlowdown = true;
+	rules.Difficulties[2].IsWallDestroyer = false;
+	rules.Difficulties[2].IsContentScan   = false;
 	CNC_Config(rules);
 
 	printf("Calling CNC_Start_Instance\n");
