@@ -7,6 +7,10 @@
 
 unsigned char game_buffer[0xFFFFFFF];
 
+float pixel_scale = 2;
+
+SDL_Rect viewport;
+
 void cnc_event_callback(const EventCallbackStruct& event)
 {
 	switch (event.EventType)
@@ -59,6 +63,12 @@ void cnc_event_callback(const EventCallbackStruct& event)
 	}
 }
 
+void mouse_to_map_coords(int in_x, int in_y, int &out_x, int &out_y)
+{
+	out_x = viewport.x + (in_x / pixel_scale);
+	out_y = viewport.y + (in_y / pixel_scale);
+}
+
 #define WIDTH 1280
 #define HEIGHT 720
 
@@ -81,11 +91,8 @@ int main(int argc, char* args[])
 	SDL_Surface* game_surface;
 	SDL_Surface* intermediate_surface = SDL_CreateRGBSurface(0, WIDTH, HEIGHT, 32, 0, 0, 0, 0);
 	SDL_SetSurfaceBlendMode(intermediate_surface, SDL_BLENDMODE_NONE);
-	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);\
+	SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
 
-	float pixel_scale = 2;
-
-	SDL_Rect viewport;
 	viewport.x = 0;
 	viewport.y = 0;
 	viewport.w = WIDTH / pixel_scale;
@@ -129,6 +136,36 @@ int main(int argc, char* args[])
 			if (event.type == SDL_MOUSEBUTTONUP && event.button.button == 2)
 			{
 				dragging = false;
+			}
+			if (event.type == SDL_MOUSEBUTTONUP && event.button.button == 1)
+			{
+				int mousex;
+				int mousey;
+				SDL_GetMouseState(&mousex, &mousey);
+				int mapx;
+				int mapy;
+				mouse_to_map_coords(mousex, mousey, mapx, mapy);
+				CNC_Handle_Input(INPUT_REQUEST_MOUSE_LEFT_CLICK, NULL, 0, mapx, mapy, NULL, NULL);
+			}
+			if (event.type == SDL_MOUSEBUTTONUP && event.button.button == 3)
+			{
+				int mousex;
+				int mousey;
+				SDL_GetMouseState(&mousex, &mousey);
+				int mapx;
+				int mapy;
+				mouse_to_map_coords(mousex, mousey, mapx, mapy);
+				CNC_Handle_Input(INPUT_REQUEST_MOUSE_RIGHT_CLICK, NULL, 0, mapx, mapy, NULL, NULL);
+			}
+			if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == 3)
+			{
+				int mousex;
+				int mousey;
+				SDL_GetMouseState(&mousex, &mousey);
+				int mapx;
+				int mapy;
+				mouse_to_map_coords(mousex, mousey, mapx, mapy);
+				CNC_Handle_Input(INPUT_REQUEST_MOUSE_RIGHT_DOWN, NULL, 0, mapx, mapy, NULL, NULL);
 			}
 			if (event.type == SDL_MOUSEWHEEL)
 			{
