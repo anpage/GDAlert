@@ -79,6 +79,12 @@ int main(int argc, char* args[])
 	printf("Calling CNC_Init\n");
 	CNC_Init("", &cnc_event_callback);
 
+	CNCRulesDataStruct rules;
+	rules.Difficulties[0].GroundspeedBias = 1;
+	rules.Difficulties[1].GroundspeedBias = 1;
+	rules.Difficulties[2].GroundspeedBias = 1;
+	CNC_Config(rules);
+
 	printf("Calling CNC_Start_Instance\n");
 	CNC_Start_Instance(1, 10, "ALLY", "GAME_NORMAL", ".", NULL, NULL);
 
