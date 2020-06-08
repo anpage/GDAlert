@@ -321,13 +321,14 @@ godot_variant gdnative_alert_cnc_get_visible_page(godot_object* p_instance, void
         unsigned int pixel_out = pixel * 4;
         for (unsigned int component = 0; component <= 2; component++)
         {
-
             // R, G, and B
             pba_data[pixel_out + component] = palette[user_data->game_buffer[pixel]][component] << 2;
         }
         // A
         pba_data[pixel_out + 3] = 0xFF;
     }
+    
+    api->godot_pool_byte_array_write_access_destroy(pba_write_access);
 
     // Return byte array as variant
     api->godot_variant_new_pool_byte_array(&ret, &user_data->pba);
