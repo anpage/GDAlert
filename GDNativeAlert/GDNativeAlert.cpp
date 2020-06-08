@@ -8,9 +8,18 @@
 
 #include "CNCDll.h"
 
+#define GAME_BUFFER_SIZE 0xFFFFFFF // 255 MB, yay overkill!
+
 typedef struct user_data_struct {
 	char data[256];
+    godot_pool_byte_array pba;
+    unsigned char game_buffer[GAME_BUFFER_SIZE];
+    unsigned int game_buffer_width;
+    unsigned int game_buffer_height;
+    bool first_frame = true;
 } user_data_struct;
+
+godot_variant self;
 
 const godot_gdnative_core_api_struct* api = NULL;
 const godot_gdnative_ext_nativescript_api_struct* nativescript_api = NULL;
@@ -22,6 +31,9 @@ godot_variant gdnative_alert_register_class(godot_object* p_instance, void* p_me
 godot_variant gdnative_alert_cnc_init(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
 godot_variant gdnative_alert_cnc_start_instance(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
 godot_variant gdnative_alert_cnc_advance_instance(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
+godot_variant gdnative_alert_cnc_get_visible_page(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
+godot_variant gdnative_alert_cnc_get_visible_page_width(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
+godot_variant gdnative_alert_cnc_get_visible_page_height(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
 
 extern "C" void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options* p_options) {
 	api = p_options->api_struct;
@@ -77,6 +89,21 @@ extern "C" void GDN_EXPORT godot_nativescript_init(void* p_handle) {
   cnc_advance_instance.method = &gdnative_alert_cnc_advance_instance;
 
   nativescript_api->godot_nativescript_register_method(p_handle, "RedAlert", "cnc_advance_instance", attributes, cnc_advance_instance);
+
+  godot_instance_method cnc_get_visible_page = { NULL, NULL, NULL };
+  cnc_get_visible_page.method = &gdnative_alert_cnc_get_visible_page;
+
+  nativescript_api->godot_nativescript_register_method(p_handle, "RedAlert", "cnc_get_visible_page", attributes, cnc_get_visible_page);
+
+  godot_instance_method cnc_get_visible_page_width = { NULL, NULL, NULL };
+  cnc_get_visible_page_width.method = &gdnative_alert_cnc_get_visible_page_width;
+
+  nativescript_api->godot_nativescript_register_method(p_handle, "RedAlert", "cnc_get_visible_page_width", attributes, cnc_get_visible_page_width);
+
+  godot_instance_method cnc_get_visible_page_height = { NULL, NULL, NULL };
+  cnc_get_visible_page_height.method = &gdnative_alert_cnc_get_visible_page_height;
+
+  nativescript_api->godot_nativescript_register_method(p_handle, "RedAlert", "cnc_get_visible_page_height", attributes, cnc_get_visible_page_height);
 }
 
 GDCALLINGCONV void* simple_constructor(godot_object* p_instance, void* p_method_data) {
@@ -106,8 +133,6 @@ godot_variant simple_get_data(godot_object* p_instance, void* p_method_data, voi
 
 	return ret;
 }
-
-godot_variant self;
 
 void cnc_event_callback(const EventCallbackStruct& event)
 {
@@ -196,6 +221,50 @@ godot_variant gdnative_alert_cnc_init(godot_object* p_instance, void* p_method_d
   const char* c_cmdline = api->godot_char_string_get_data(&char_cmdline);
   CNC_Init(c_cmdline, &cnc_event_callback);
   ShowCursor(TRUE);
+
+  CNCRulesDataStruct rules;
+  // Rules taken from original game
+  // Easy
+  rules.Difficulties[0].FirepowerBias = 1.000f;
+  rules.Difficulties[0].GroundspeedBias = 1.200f;
+  rules.Difficulties[0].AirspeedBias = 1.200f;
+  rules.Difficulties[0].ArmorBias = 1.200f;
+  rules.Difficulties[0].ROFBias = 0.800f;
+  rules.Difficulties[0].CostBias = 0.800f;
+  rules.Difficulties[0].BuildSpeedBias = 0.800f;
+  rules.Difficulties[0].RepairDelay = 0.001f;
+  rules.Difficulties[0].BuildDelay = 0.001f;
+  rules.Difficulties[0].IsBuildSlowdown = false;
+  rules.Difficulties[0].IsWallDestroyer = true;
+  rules.Difficulties[0].IsContentScan = true;
+  // Medium
+  rules.Difficulties[1].FirepowerBias = 1.000f;
+  rules.Difficulties[1].GroundspeedBias = 1.000f;
+  rules.Difficulties[1].AirspeedBias = 1.000f;
+  rules.Difficulties[1].ArmorBias = 1.000f;
+  rules.Difficulties[1].ROFBias = 1.000f;
+  rules.Difficulties[1].CostBias = 1.000f;
+  rules.Difficulties[1].BuildSpeedBias = 1.000f;
+  rules.Difficulties[1].RepairDelay = 0.020f;
+  rules.Difficulties[1].BuildDelay = 0.030f;
+  rules.Difficulties[1].IsBuildSlowdown = true;
+  rules.Difficulties[1].IsWallDestroyer = true;
+  rules.Difficulties[1].IsContentScan = true;
+  //Hard
+  rules.Difficulties[2].FirepowerBias = 1.000f;
+  rules.Difficulties[2].GroundspeedBias = 0.800f;
+  rules.Difficulties[2].AirspeedBias = 0.800f;
+  rules.Difficulties[2].ArmorBias = 0.800f;
+  rules.Difficulties[2].ROFBias = 1.200f;
+  rules.Difficulties[2].CostBias = 1.000f;
+  rules.Difficulties[2].BuildSpeedBias = 1.000f;
+  rules.Difficulties[2].RepairDelay = 0.050f;
+  rules.Difficulties[2].BuildDelay = 0.100f;
+  rules.Difficulties[2].IsBuildSlowdown = true;
+  rules.Difficulties[2].IsWallDestroyer = false;
+  rules.Difficulties[2].IsContentScan = false;
+  CNC_Config(rules);
+
   api->godot_free(&cmdline);
   api->godot_free(&char_cmdline);
   return ret;
@@ -214,5 +283,69 @@ godot_variant gdnative_alert_cnc_advance_instance(godot_object* p_instance, void
     godot_variant ret;
     api->godot_variant_new_int(&ret, 0);
     CNC_Advance_Instance(0);
+    return ret;
+}
+
+godot_variant gdnative_alert_cnc_get_visible_page(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args)
+{
+    godot_variant ret;
+    user_data_struct* user_data = (user_data_struct*)p_user_data;
+    if (user_data->first_frame == true)
+    {
+        api->godot_pool_byte_array_new(&user_data->pba);
+        user_data->first_frame = false;
+    }
+
+    // Get palette
+    unsigned char palette[256][3];
+    CNC_Get_Palette(palette);
+
+    // Get visible page
+    unsigned int width = 0;
+    unsigned int height = 0;
+    CNC_Get_Visible_Page(user_data->game_buffer, width, height);
+    if (width != user_data->game_buffer_width || height != user_data->game_buffer_height)
+    {
+        user_data->game_buffer_width = width;
+        user_data->game_buffer_height = height;
+        api->godot_pool_byte_array_resize(&user_data->pba, width*height*4);
+    }
+
+    // Get pointer to byte array data
+    godot_pool_byte_array_write_access* pba_write_access = api->godot_pool_byte_array_write(&user_data->pba);
+    unsigned char* pba_data = api->godot_pool_byte_array_write_access_ptr(pba_write_access);
+
+    // Convert visible page to FORMAT_RGBA8
+    for (unsigned int pixel = 0; pixel < width * height; pixel++)
+    {
+        unsigned int pixel_out = pixel * 4;
+        for (unsigned int component = 0; component <= 2; component++)
+        {
+
+            // R, G, and B
+            pba_data[pixel_out + component] = palette[user_data->game_buffer[pixel]][component] << 2;
+        }
+        // A
+        pba_data[pixel_out + 3] = 0xFF;
+    }
+
+    // Return byte array as variant
+    api->godot_variant_new_pool_byte_array(&ret, &user_data->pba);
+    return ret;
+}
+
+godot_variant gdnative_alert_cnc_get_visible_page_width(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args)
+{
+    godot_variant ret;
+    user_data_struct* user_data = (user_data_struct*)p_user_data;
+    api->godot_variant_new_int(&ret, user_data->game_buffer_width);
+    return ret;
+}
+
+godot_variant gdnative_alert_cnc_get_visible_page_height(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args)
+{
+    godot_variant ret;
+    user_data_struct* user_data = (user_data_struct*)p_user_data;
+    api->godot_variant_new_int(&ret, user_data->game_buffer_height);
     return ret;
 }

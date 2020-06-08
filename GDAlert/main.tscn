@@ -1,30 +1,31 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://main.gd" type="Script" id=1]
+
+[sub_resource type="ImageTexture" id=1]
 
 [node name="main" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+margin_bottom = 3.05176e-05
 script = ExtResource( 1 )
 __meta__ = {
+"_edit_lock_": true,
 "_edit_use_anchors_": false
 }
 
-[node name="Button" type="Button" parent="."]
-margin_left = 333.0
-margin_top = 200.0
-margin_right = 589.0
-margin_bottom = 295.0
-text = "Button"
+[node name="TextureRect" type="TextureRect" parent="."]
+texture = SubResource( 1 )
+stretch_mode = 3
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Label" type="Label" parent="."]
-anchor_right = 0.06
-anchor_bottom = 0.063
-margin_left = 281.0
-margin_top = 362.0
-margin_right = 581.56
-margin_bottom = 410.2
-[connection signal="pressed" from="Button" to="." method="_on_Button_pressed"]
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
+margin_left = 10.0
+margin_top = 7.0
+margin_right = 137.0
+margin_bottom = 31.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
