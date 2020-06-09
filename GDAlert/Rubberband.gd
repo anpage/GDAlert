@@ -12,8 +12,6 @@ func _ready():
 
 func _gui_input(event):
 	if event is InputEventMouseButton:
-		var x = event.position.x
-		var y = event.position.y
 		if event.button_index == BUTTON_LEFT:
 			if event.pressed:
 				rect.position = event.position
