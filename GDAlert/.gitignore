@@ -13,3 +13,9 @@ data_*/
 # Original game assets
 RedAlert/
 TEMP_VTX.PAL
+
+# Don't ignore bin folder
+!bin/
+bin/*.dll
+bin/*.exp
+bin/*.lib
