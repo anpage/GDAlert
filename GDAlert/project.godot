@@ -19,6 +19,10 @@ config/name="GDAlert"
 run/main_scene="res://main.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+RedAlert="*res://bin/RedAlert.gdns"
+
 [display]
 
 window/vsync/use_vsync=false

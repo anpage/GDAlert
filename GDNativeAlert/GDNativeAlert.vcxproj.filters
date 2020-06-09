@@ -21,18 +21,12 @@
     <ClInclude Include="GDNativeAlert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EventCallback.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GDLibrary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GDNativeAlert.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EventCallback.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

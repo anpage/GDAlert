@@ -8,10 +8,11 @@
 #include <WinUser.h>
 #endif
 
+#include <ProjectSettings.hpp>
+
 using namespace godot;
 
 void GDNativeAlert::_register_methods() {
-    register_method("cnc_init", &GDNativeAlert::cnc_init);
     register_method("cnc_start_instance", &GDNativeAlert::cnc_start_instance);
     register_method("cnc_advance_instance", &GDNativeAlert::cnc_advance_instance);
     register_method("cnc_get_visible_page", &GDNativeAlert::cnc_get_visible_page);
@@ -26,19 +27,79 @@ void GDNativeAlert::_register_methods() {
 }
 
 GDNativeAlert::GDNativeAlert() {
-    event_member_callback = new EventMemberFunctionCallback(this, LPFN_EventMemberFunctionCallback(&GDNativeAlert::event_callback));
 }
 
 GDNativeAlert::~GDNativeAlert() {
-    delete event_member_callback;
 }
 
 void GDNativeAlert::_init() {
     game_buffer_width = 0;
     game_buffer_height = 0;
+    
+    String content_path = ProjectSettings::get_singleton()->globalize_path("res://RedAlert");
+    String command_line = "-CD\"" + content_path.replace("/", "\\") + "\"";
+
+    char* command_line_cstr = command_line.alloc_c_string();
+    callback_instance = this;
+    CNC_Init(command_line_cstr, &event_callback);
+    if (command_line_cstr != nullptr) godot::api->godot_free(command_line_cstr);
+#ifdef WIN32
+    ShowCursor(TRUE);
+#endif
+
+    CNCRulesDataStruct rules;
+    // Rules taken from original game
+    // Easy
+    rules.Difficulties[0].FirepowerBias = 1.000f;
+    rules.Difficulties[0].GroundspeedBias = 1.200f;
+    rules.Difficulties[0].AirspeedBias = 1.200f;
+    rules.Difficulties[0].ArmorBias = 1.200f;
+    rules.Difficulties[0].ROFBias = 0.800f;
+    rules.Difficulties[0].CostBias = 0.800f;
+    rules.Difficulties[0].BuildSpeedBias = 0.800f;
+    rules.Difficulties[0].RepairDelay = 0.001f;
+    rules.Difficulties[0].BuildDelay = 0.001f;
+    rules.Difficulties[0].IsBuildSlowdown = false;
+    rules.Difficulties[0].IsWallDestroyer = true;
+    rules.Difficulties[0].IsContentScan = true;
+    // Medium
+    rules.Difficulties[1].FirepowerBias = 1.000f;
+    rules.Difficulties[1].GroundspeedBias = 1.000f;
+    rules.Difficulties[1].AirspeedBias = 1.000f;
+    rules.Difficulties[1].ArmorBias = 1.000f;
+    rules.Difficulties[1].ROFBias = 1.000f;
+    rules.Difficulties[1].CostBias = 1.000f;
+    rules.Difficulties[1].BuildSpeedBias = 1.000f;
+    rules.Difficulties[1].RepairDelay = 0.020f;
+    rules.Difficulties[1].BuildDelay = 0.030f;
+    rules.Difficulties[1].IsBuildSlowdown = true;
+    rules.Difficulties[1].IsWallDestroyer = true;
+    rules.Difficulties[1].IsContentScan = true;
+    //Hard
+    rules.Difficulties[2].FirepowerBias = 1.000f;
+    rules.Difficulties[2].GroundspeedBias = 0.800f;
+    rules.Difficulties[2].AirspeedBias = 0.800f;
+    rules.Difficulties[2].ArmorBias = 0.800f;
+    rules.Difficulties[2].ROFBias = 1.200f;
+    rules.Difficulties[2].CostBias = 1.000f;
+    rules.Difficulties[2].BuildSpeedBias = 1.000f;
+    rules.Difficulties[2].RepairDelay = 0.050f;
+    rules.Difficulties[2].BuildDelay = 0.100f;
+    rules.Difficulties[2].IsBuildSlowdown = true;
+    rules.Difficulties[2].IsWallDestroyer = false;
+    rules.Difficulties[2].IsContentScan = false;
+    CNC_Config(rules);
 }
 
+GDNativeAlert* GDNativeAlert::callback_instance;
+
 void GDNativeAlert::event_callback(const EventCallbackStruct& event) {
+    if (callback_instance != NULL) {
+        callback_instance->handle_event(event);
+    }
+}
+
+void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
     String message;
 
     switch (event.EventType)
@@ -115,58 +176,6 @@ void GDNativeAlert::event_callback(const EventCallbackStruct& event) {
     }
 
     emit_signal("event", message);
-}
-
-void GDNativeAlert::cnc_init(String command_line) {
-    char* command_line_cstr = command_line.alloc_c_string();
-    CNC_Init(command_line_cstr, *event_member_callback);
-    if (command_line_cstr != nullptr) godot::api->godot_free(command_line_cstr);
-#ifdef WIN32
-    ShowCursor(TRUE);
-#endif
-
-    CNCRulesDataStruct rules;
-    // Rules taken from original game
-    // Easy
-    rules.Difficulties[0].FirepowerBias = 1.000f;
-    rules.Difficulties[0].GroundspeedBias = 1.200f;
-    rules.Difficulties[0].AirspeedBias = 1.200f;
-    rules.Difficulties[0].ArmorBias = 1.200f;
-    rules.Difficulties[0].ROFBias = 0.800f;
-    rules.Difficulties[0].CostBias = 0.800f;
-    rules.Difficulties[0].BuildSpeedBias = 0.800f;
-    rules.Difficulties[0].RepairDelay = 0.001f;
-    rules.Difficulties[0].BuildDelay = 0.001f;
-    rules.Difficulties[0].IsBuildSlowdown = false;
-    rules.Difficulties[0].IsWallDestroyer = true;
-    rules.Difficulties[0].IsContentScan = true;
-    // Medium
-    rules.Difficulties[1].FirepowerBias = 1.000f;
-    rules.Difficulties[1].GroundspeedBias = 1.000f;
-    rules.Difficulties[1].AirspeedBias = 1.000f;
-    rules.Difficulties[1].ArmorBias = 1.000f;
-    rules.Difficulties[1].ROFBias = 1.000f;
-    rules.Difficulties[1].CostBias = 1.000f;
-    rules.Difficulties[1].BuildSpeedBias = 1.000f;
-    rules.Difficulties[1].RepairDelay = 0.020f;
-    rules.Difficulties[1].BuildDelay = 0.030f;
-    rules.Difficulties[1].IsBuildSlowdown = true;
-    rules.Difficulties[1].IsWallDestroyer = true;
-    rules.Difficulties[1].IsContentScan = true;
-    //Hard
-    rules.Difficulties[2].FirepowerBias = 1.000f;
-    rules.Difficulties[2].GroundspeedBias = 0.800f;
-    rules.Difficulties[2].AirspeedBias = 0.800f;
-    rules.Difficulties[2].ArmorBias = 0.800f;
-    rules.Difficulties[2].ROFBias = 1.200f;
-    rules.Difficulties[2].CostBias = 1.000f;
-    rules.Difficulties[2].BuildSpeedBias = 1.000f;
-    rules.Difficulties[2].RepairDelay = 0.050f;
-    rules.Difficulties[2].BuildDelay = 0.100f;
-    rules.Difficulties[2].IsBuildSlowdown = true;
-    rules.Difficulties[2].IsWallDestroyer = false;
-    rules.Difficulties[2].IsContentScan = false;
-    CNC_Config(rules);
 }
 
 bool GDNativeAlert::cnc_start_instance(int scenario_index, int build_level, String faction) {

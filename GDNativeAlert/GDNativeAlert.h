@@ -3,29 +3,29 @@
 
 #include <Godot.hpp>
 #include <PoolArrays.hpp>
-#include <Reference.hpp>
+#include <Node.hpp>
 #include <String.hpp>
 
 #include "CNCDll.h"
-#include "EventCallback.h"
 
 #define GAME_BUFFER_SIZE 0xFFFFFFF // 255 MB, yay overkill!
 
 namespace godot {
 
-    class GDNativeAlert : public Reference, public ClassWithCallback {
-        GODOT_CLASS(GDNativeAlert, Reference);
+    class GDNativeAlert : public Node {
+        GODOT_CLASS(GDNativeAlert, Node);
 
     private:
-        EventMemberFunctionCallback* event_member_callback;
+        static GDNativeAlert* callback_instance;
+        static void event_callback(const EventCallbackStruct& event);
+        void handle_event(const EventCallbackStruct& event);
+
         PoolByteArray game_buffer_pba;
         unsigned char game_buffer[GAME_BUFFER_SIZE];
         unsigned int game_buffer_width;
         unsigned int game_buffer_height;
 
     public:
-        void event_callback(const EventCallbackStruct& event);
-
         static void _register_methods();
 
         GDNativeAlert();
@@ -33,7 +33,6 @@ namespace godot {
 
         void _init();
 
-        void cnc_init(String command_line);
         bool cnc_start_instance(int scenario_index, int build_level, String faction);
         bool cnc_advance_instance();
         PoolByteArray cnc_get_visible_page();
