@@ -28,20 +28,19 @@ func _process(delta):
 
 	if time_since_game_tick >= 0.03333333333:
 		redAlert.cnc_advance_instance(0)
-
-		var data = redAlert.cnc_get_visible_page()
-		var width = redAlert.cnc_get_visible_page_width()
-		var height = redAlert.cnc_get_visible_page_height()
-		if width != page_width or height != page_height:
-			page_width = width
-			page_height = height
-			game_image.create(width, height, false, Image.FORMAT_RGBA8)
-		game_image.data.data = data
-		texture.set_data(game_image)
-		texture.flags = 0
-		texture.set_size_override(Vector2(width, height))
-
 		time_since_game_tick = 0
+
+	var data = redAlert.cnc_get_visible_page()
+	var width = redAlert.cnc_get_visible_page_width()
+	var height = redAlert.cnc_get_visible_page_height()
+	if width != page_width or height != page_height:
+		page_width = width
+		page_height = height
+		game_image.create(width, height, false, Image.FORMAT_RGBA8)
+	game_image.data.data = data
+	texture.set_data(game_image)
+	texture.flags = 0
+	texture.set_size_override(Vector2(width, height))
 
 func _gui_input(event):
 	if event is InputEventMouseButton:
