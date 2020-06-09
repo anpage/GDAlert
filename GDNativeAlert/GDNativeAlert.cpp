@@ -297,8 +297,18 @@ godot_variant gdnative_alert_cnc_init(godot_object* p_instance, void* p_method_d
 godot_variant gdnative_alert_cnc_start_instance(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args)
 {
     godot_variant ret;
-    api->godot_variant_new_int(&ret, 0);
-    CNC_Start_Instance(1, 10, "ALLY", "GAME_NORMAL", "", NULL, NULL);
+
+    int scenario_index = api->godot_variant_as_int(p_args[0]);
+
+    int build_level = api->godot_variant_as_int(p_args[1]);
+
+    godot_string faction_name = api->godot_variant_as_string(p_args[2]);
+    godot_char_string char_faction_name = api->godot_string_ascii(&faction_name);
+    const char* c_faction_name = api->godot_char_string_get_data(&char_faction_name);
+
+    bool success = CNC_Start_Instance(scenario_index, build_level, c_faction_name, "GAME_NORMAL", "", NULL, NULL);
+    api->godot_variant_new_bool(&ret, success);
+
     return ret;
 }
 
