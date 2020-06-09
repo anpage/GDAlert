@@ -1,23 +1,24 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
-[ext_resource path="res://main.gd" type="Script" id=1]
+[ext_resource path="res://FramerateLabel.gd" type="Script" id=1]
 [ext_resource path="res://RedAlertGraphics.gd" type="Script" id=2]
 [ext_resource path="res://Rubberband.tscn" type="PackedScene" id=3]
+[ext_resource path="res://RedAlertPlaceholder.png" type="Texture" id=4]
 
-[sub_resource type="ImageTexture" id=1]
+[sub_resource type="StyleBoxFlat" id=1]
+bg_color = Color( 0, 0, 0, 0.576471 )
 
 [node name="main" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_bottom = 3.05176e-05
-script = ExtResource( 1 )
 __meta__ = {
 "_edit_lock_": true,
 "_edit_use_anchors_": false
 }
 
 [node name="RedAlertGraphics" type="TextureRect" parent="."]
-texture = SubResource( 1 )
+texture = ExtResource( 4 )
 stretch_mode = 3
 script = ExtResource( 2 )
 __meta__ = {
@@ -29,11 +30,21 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 
-[node name="FramerateLabel" type="RichTextLabel" parent="."]
+[node name="GameCamera" type="Camera2D" parent="RedAlertGraphics"]
+anchor_mode = 0
+current = true
+zoom = Vector2( 0.5, 0.5 )
+editor_draw_limits = true
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="FramerateLabel" type="RichTextLabel" parent="CanvasLayer"]
 margin_left = 10.0
 margin_top = 7.0
 margin_right = 137.0
 margin_bottom = 31.0
+custom_styles/normal = SubResource( 1 )
+script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
