@@ -12,7 +12,7 @@ data_*/
 
 # Original game assets
 RedAlert/
-TEMP_VTX.PAL
+*.PAL
 
 # Don't ignore bin folder
 !bin/
