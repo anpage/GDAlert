@@ -15,8 +15,7 @@ func debug_message(msg):
 	print (msg)
 
 func _ready():
-	pass
-	redAlert.register_class(self)
+	redAlert.connect("event", self, "debug_message");
 	var content_path = ProjectSettings.globalize_path("res://RedAlert")
 	var cmdline = "-CD\"" + content_path.replace("/", "\\") + "\""
 	redAlert.cnc_init(cmdline)

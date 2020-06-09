@@ -3,5 +3,5 @@
 [ext_resource path="res://bin/libgdnativealert.gdnlib" type="GDNativeLibrary" id=1]
 
 [resource]
-class_name = "RedAlert"
+class_name = "GDNativeAlert"
 library = ExtResource( 1 )

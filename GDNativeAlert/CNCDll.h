@@ -1,4 +1,8 @@
-#pragma once
+#ifndef CNCDLL_H
+#define CNCDLL_H
+
+
+#include <stdlib.h>
 
 #include "DLLInterface.h"
 
@@ -45,3 +49,5 @@ extern "C" __declspec(dllexport) void __cdecl CNC_Restore_Carryover_Objects(cons
 extern "C" __declspec(dllexport) void __cdecl CNC_Handle_Player_Switch_To_AI(uint64 player_id);
 extern "C" __declspec(dllexport) void __cdecl CNC_Handle_Human_Team_Wins(uint64 player_id);
 extern "C" __declspec(dllexport) void __cdecl CNC_Start_Mission_Timer(int time);
+
+#endif

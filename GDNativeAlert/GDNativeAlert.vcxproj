@@ -11,15 +11,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GDNativeAlert.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="CNCDll.h" />
+    <ClInclude Include="EventCallback.h" />
+    <ClInclude Include="GDNativeAlert.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\REDALERT\RedAlert.vcxproj">
       <Project>{da948ed9-ef67-4813-94b7-995be956786e}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="EventCallback.cpp" />
+    <ClCompile Include="GDNativeAlert.cpp" />
+    <ClCompile Include="GDLibrary.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -56,15 +60,15 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\REDALERT\include;$(ProjectDir)..\godot_headers;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)\GDAlert\bin\</OutDir>
-    <LibraryPath>$(SolutionDir)\GDAlert\bin\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)..\REDALERT\include;$(ProjectDir)..\godot-cpp\godot_headers;$(ProjectDir)..\godot-cpp\include;$(ProjectDir)..\godot-cpp\include\core;$(ProjectDir)..\godot-cpp\include\gen;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)GDAlert\bin\</OutDir>
+    <LibraryPath>$(SolutionDir)godot-cpp\bin;$(SolutionDir)GDAlert\bin\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\REDALERT\include;$(ProjectDir)..\godot_headers;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)\GDAlert\bin\</OutDir>
-    <LibraryPath>$(SolutionDir)\GDAlert\bin\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)..\REDALERT\include;$(ProjectDir)..\godot-cpp\godot_headers;$(ProjectDir)..\godot-cpp\include;$(ProjectDir)..\godot-cpp\include\core;$(ProjectDir)..\godot-cpp\include\gen;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)GDAlert\bin\</OutDir>
+    <LibraryPath>$(SolutionDir)godot-cpp\bin;$(SolutionDir)GDAlert\bin\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -81,7 +85,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>RedAlert.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>RedAlert.lib;libgodot-cpp.windows.debug.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -101,7 +105,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>RedAlert.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>RedAlert.lib;libgodot-cpp.windows.release.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
