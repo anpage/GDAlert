@@ -34,6 +34,10 @@ godot_variant gdnative_alert_cnc_advance_instance(godot_object* p_instance, void
 godot_variant gdnative_alert_cnc_get_visible_page(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
 godot_variant gdnative_alert_cnc_get_visible_page_width(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
 godot_variant gdnative_alert_cnc_get_visible_page_height(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
+godot_variant gdnative_alert_cnc_handle_left_mouse_up(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
+godot_variant gdnative_alert_cnc_handle_right_mouse_down(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
+godot_variant gdnative_alert_cnc_handle_right_mouse_up(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
+godot_variant gdnative_alert_cnc_handle_mouse_area(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args);
 
 extern "C" void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options* p_options) {
 	api = p_options->api_struct;
@@ -104,6 +108,26 @@ extern "C" void GDN_EXPORT godot_nativescript_init(void* p_handle) {
   cnc_get_visible_page_height.method = &gdnative_alert_cnc_get_visible_page_height;
 
   nativescript_api->godot_nativescript_register_method(p_handle, "RedAlert", "cnc_get_visible_page_height", attributes, cnc_get_visible_page_height);
+
+  godot_instance_method cnc_handle_left_mouse_up = { NULL, NULL, NULL };
+  cnc_handle_left_mouse_up.method = &gdnative_alert_cnc_handle_left_mouse_up;
+
+  nativescript_api->godot_nativescript_register_method(p_handle, "RedAlert", "cnc_handle_left_mouse_up", attributes, cnc_handle_left_mouse_up);
+
+  godot_instance_method cnc_handle_right_mouse_up = { NULL, NULL, NULL };
+  cnc_handle_right_mouse_up.method = &gdnative_alert_cnc_handle_right_mouse_up;
+
+  nativescript_api->godot_nativescript_register_method(p_handle, "RedAlert", "cnc_handle_right_mouse_up", attributes, cnc_handle_right_mouse_up);
+
+  godot_instance_method cnc_handle_right_mouse_down = { NULL, NULL, NULL };
+  cnc_handle_right_mouse_down.method = &gdnative_alert_cnc_handle_right_mouse_down;
+
+  nativescript_api->godot_nativescript_register_method(p_handle, "RedAlert", "cnc_handle_right_mouse_down", attributes, cnc_handle_right_mouse_down);
+
+  godot_instance_method cnc_handle_mouse_area = { NULL, NULL, NULL };
+  cnc_handle_mouse_area.method = &gdnative_alert_cnc_handle_mouse_area;
+
+  nativescript_api->godot_nativescript_register_method(p_handle, "RedAlert", "cnc_handle_mouse_area", attributes, cnc_handle_mouse_area);
 }
 
 GDCALLINGCONV void* simple_constructor(godot_object* p_instance, void* p_method_data) {
@@ -348,5 +372,47 @@ godot_variant gdnative_alert_cnc_get_visible_page_height(godot_object* p_instanc
     godot_variant ret;
     user_data_struct* user_data = (user_data_struct*)p_user_data;
     api->godot_variant_new_int(&ret, user_data->game_buffer_height);
+    return ret;
+}
+
+godot_variant gdnative_alert_cnc_handle_left_mouse_up(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args)
+{
+    godot_variant ret;
+    godot_int x = api->godot_variant_as_int(p_args[0]);
+    godot_int y = api->godot_variant_as_int(p_args[1]);
+    CNC_Handle_Input(INPUT_REQUEST_MOUSE_LEFT_CLICK, NULL, 0, x, y, NULL, NULL);
+    api->godot_variant_new_int(&ret, 0);
+    return ret;
+}
+
+godot_variant gdnative_alert_cnc_handle_right_mouse_down(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args)
+{
+    godot_variant ret;
+    godot_int x = api->godot_variant_as_int(p_args[0]);
+    godot_int y = api->godot_variant_as_int(p_args[1]);
+    CNC_Handle_Input(INPUT_REQUEST_MOUSE_RIGHT_DOWN, NULL, 0, x, y, NULL, NULL);
+    api->godot_variant_new_int(&ret, 0);
+    return ret;
+}
+
+godot_variant gdnative_alert_cnc_handle_right_mouse_up(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args)
+{
+    godot_variant ret;
+    godot_int x = api->godot_variant_as_int(p_args[0]);
+    godot_int y = api->godot_variant_as_int(p_args[1]);
+    CNC_Handle_Input(INPUT_REQUEST_MOUSE_RIGHT_CLICK, NULL, 0, x, y, NULL, NULL);
+    api->godot_variant_new_int(&ret, 0);
+    return ret;
+}
+
+godot_variant gdnative_alert_cnc_handle_mouse_area(godot_object* p_instance, void* p_method_data, void* p_user_data, int p_num_args, godot_variant** p_args)
+{
+    godot_variant ret;
+    godot_int x1 = api->godot_variant_as_int(p_args[0]);
+    godot_int y1 = api->godot_variant_as_int(p_args[1]);
+    godot_int x2 = api->godot_variant_as_int(p_args[2]);
+    godot_int y2 = api->godot_variant_as_int(p_args[3]);
+    CNC_Handle_Input(INPUT_REQUEST_MOUSE_AREA, NULL, 0, x1, y1, x2, y2);
+    api->godot_variant_new_int(&ret, 0);
     return ret;
 }

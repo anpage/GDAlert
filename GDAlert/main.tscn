@@ -1,6 +1,8 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://main.gd" type="Script" id=1]
+[ext_resource path="res://RedAlertGraphics.gd" type="Script" id=2]
+[ext_resource path="res://Rubberband.tscn" type="PackedScene" id=3]
 
 [sub_resource type="ImageTexture" id=1]
 
@@ -14,14 +16,20 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="TextureRect" type="TextureRect" parent="."]
+[node name="RedAlertGraphics" type="TextureRect" parent="."]
 texture = SubResource( 1 )
 stretch_mode = 3
+script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="RichTextLabel" type="RichTextLabel" parent="."]
+[node name="Rubberband" parent="RedAlertGraphics" instance=ExtResource( 3 )]
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="FramerateLabel" type="RichTextLabel" parent="."]
 margin_left = 10.0
 margin_top = 7.0
 margin_right = 137.0
@@ -29,3 +37,4 @@ margin_bottom = 31.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
+[connection signal="select_rect_finish" from="RedAlertGraphics/Rubberband" to="RedAlertGraphics" method="_on_select_rect_finish"]
