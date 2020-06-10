@@ -13,6 +13,8 @@
   <ItemGroup>
     <ClInclude Include="CNCDll.h" />
     <ClInclude Include="GDNativeAlert.h" />
+    <ClInclude Include="io\adpcm.h" />
+    <ClInclude Include="io\audio.h" />
     <ClInclude Include="io\basefile.h" />
     <ClInclude Include="io\bfiofile.h" />
     <ClInclude Include="io\blowfish.h" />
@@ -50,6 +52,8 @@
   <ItemGroup>
     <ClCompile Include="GDNativeAlert.cpp" />
     <ClCompile Include="GDLibrary.cpp" />
+    <ClCompile Include="io\adpcm.cpp" />
+    <ClCompile Include="io\audio.cpp" />
     <ClCompile Include="io\basefile.cpp" />
     <ClCompile Include="io\bfiofile.cpp" />
     <ClCompile Include="io\blowfish.cpp" />

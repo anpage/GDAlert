@@ -22,6 +22,7 @@ namespace godot {
 
         PoolByteArray game_buffer_pba;
         unsigned char game_buffer[GAME_BUFFER_SIZE];
+        PoolByteArray speech_buffer;
         unsigned int game_buffer_width;
         unsigned int game_buffer_height;
 
@@ -32,6 +33,8 @@ namespace godot {
         ~GDNativeAlert();
 
         void _init();
+
+        void play_speech(String name);
 
         bool cnc_start_instance(int scenario_index, int build_level, String faction);
         bool cnc_advance_instance();

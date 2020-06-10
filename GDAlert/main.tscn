@@ -48,4 +48,7 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Player" type="AudioStreamPlayer" parent="."]
+volume_db = -15.0
 [connection signal="select_rect_finish" from="RedAlertGraphics/Rubberband" to="RedAlertGraphics" method="_on_select_rect_finish"]

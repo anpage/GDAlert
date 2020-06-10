@@ -15,7 +15,7 @@ func debug_message(msg):
 func _ready():
 	RedAlert.connect("event", self, "debug_message");
 	# RedAlert.cnc_start_instance(scenario_number, build_level, "ALLY" or "USSR")
-	RedAlert.cnc_start_instance(3, 10, "ALLY")
+	RedAlert.cnc_start_instance(1, 10, "ALLY")
 	game_image.create(256, 256, false, Image.FORMAT_RGBA8)
 	game_image.fill(Color(1,0,0,1))
 	texture = ImageTexture.new()

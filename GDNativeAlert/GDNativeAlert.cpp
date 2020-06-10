@@ -10,11 +10,15 @@
 
 #include <ProjectSettings.hpp>
 #include <ConfigFile.hpp>
+#include <AudioStreamSample.hpp>
+#include <AudioStreamPlayer.hpp>
 
 #include "mixfile.h"
 #include "pk.h"
 #include "gamefile.h"
 #include "ini.h"
+#include "audio.h"
+#include "adpcm.h"
 
 using namespace godot;
 
@@ -72,6 +76,8 @@ void GDNativeAlert::_init() {
     GameMixFile::Cache("REDALERT.MIX");
     GameMixFile* local_mix = new GameMixFile("LOCAL.MIX", &fastKey);
     GameMixFile::Cache("LOCAL.MIX");
+    GameMixFile* speech_mix = new GameMixFile("SPEECH.MIX", &fastKey);
+    GameMixFile::Cache("SPEECH.MIX");
 
     INIClass RuleINI;
     GameFileClass ini_file = GameFileClass("RULES.INI");
@@ -119,6 +125,54 @@ void GDNativeAlert::_init() {
     CNC_Config(rules);
 }
 
+void GDNativeAlert::play_speech(String name) {
+    char* filename = (name + ".AUD").alloc_c_string();
+    void* new_opt = GameMixFile::Retrieve(filename);
+    if (filename != nullptr) godot::api->godot_free(filename);
+
+    ADPCMStreamType stream_info;
+
+    // Read in the sample's header.
+    AUDHeaderStruct raw_header;
+    memcpy(&raw_header, new_opt, sizeof(raw_header));
+
+    // Compression is ADPCM so we need to init its stream info.
+    if (raw_header.m_Compression == COMP_ADPCM) {
+        stream_info.m_Channels = (raw_header.m_Flags & 1) + 1;
+        stream_info.m_BitsPerSample = raw_header.m_Flags & 2 ? 16 : 8;
+        stream_info.m_CompSize = raw_header.m_Size;
+        stream_info.m_UnCompSize = raw_header.m_Size * (stream_info.m_BitsPerSample / 4);
+        ADPCM_Stream_Init(&stream_info);
+    }
+    stream_info.m_Source = new_opt;
+
+    speech_buffer.resize(stream_info.m_UnCompSize);
+    // Get pointer to byte array data
+    PoolByteArray::Write pba_write = speech_buffer.write();
+    unsigned char* pba_data = pba_write.ptr();
+    stream_info.m_Dest = pba_data;
+
+    ADPCM_Decompress(&stream_info, stream_info.m_UnCompSize);
+
+    godot::api->godot_free(&pba_write);
+
+    AudioStreamSample* sample = AudioStreamSample::_new();
+    if (stream_info.m_BitsPerSample == 16)
+    {
+        sample->set_format(AudioStreamSample::FORMAT_16_BITS);
+    }
+    if (stream_info.m_Channels == 2)
+    {
+        sample->set_stereo(true);
+    }
+    sample->set_mix_rate(raw_header.m_Rate);
+    sample->set_data(speech_buffer);
+
+    AudioStreamPlayer* player = (AudioStreamPlayer*)get_node("/root/main/Player");
+    player->set_stream(sample);
+    player->play();
+}
+
 GDNativeAlert* GDNativeAlert::callback_instance;
 
 void GDNativeAlert::event_callback(const EventCallbackStruct& event) {
@@ -147,6 +201,7 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
         {
             String speech(event.Speech.SpeechName);
             message = "Speech: " + speech;
+            play_speech(event.Speech.SpeechName);
         }
         break;
         case (CALLBACK_EVENT_GAME_OVER):

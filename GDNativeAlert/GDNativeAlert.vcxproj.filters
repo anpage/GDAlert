@@ -111,6 +111,12 @@
     <ClInclude Include="io\readline.h">
       <Filter>Header Files\io</Filter>
     </ClInclude>
+    <ClInclude Include="io\adpcm.h">
+      <Filter>Header Files\io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\audio.h">
+      <Filter>Header Files\io</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GDLibrary.cpp">
@@ -189,6 +195,12 @@
       <Filter>Source Files\io</Filter>
     </ClCompile>
     <ClCompile Include="io\readline.cpp">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="io\adpcm.cpp">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="io\audio.cpp">
       <Filter>Source Files\io</Filter>
     </ClCompile>
   </ItemGroup>
