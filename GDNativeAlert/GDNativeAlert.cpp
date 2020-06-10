@@ -1,6 +1,6 @@
 #include "GDNativeAlert.h"
 
-#include<iostream>
+#include <iostream>
 #include <string>
 
 #ifdef WIN32
@@ -9,6 +9,12 @@
 #endif
 
 #include <ProjectSettings.hpp>
+#include <ConfigFile.hpp>
+
+#include "mixfile.h"
+#include "pk.h"
+#include "gamefile.h"
+#include "ini.h"
 
 using namespace godot;
 
@@ -35,7 +41,7 @@ GDNativeAlert::~GDNativeAlert() {
 void GDNativeAlert::_init() {
     game_buffer_width = 0;
     game_buffer_height = 0;
-    
+
     String content_path = ProjectSettings::get_singleton()->globalize_path("res://RedAlert");
     String command_line = "-CD\"" + content_path.replace("/", "\\") + "\"";
 
@@ -47,47 +53,69 @@ void GDNativeAlert::_init() {
     ShowCursor(TRUE);
 #endif
 
+    PKey fastKey = PKey();
+    uint8_t buffer[512];
+
+    // From PK.H
+    Int<MAX_UNIT_PRECISION> exp(65537L);
+    MPMath::DER_Encode(exp, buffer, MAX_UNIT_PRECISION);
+    fastKey.Decode_Exponent(buffer);
+
+    // From CONST.CPP, base64 encoded
+    // "AihRvNoIbTn85FZRYNZRcT+i6KpU+maCsEqr3Q5q+LDB5tH7Tz2qQ38V"
+    const char mod[] = { '\x02', '\x28', '\x51', '\xbc', '\xda', '\x08', '\x6d', '\x39', '\xfc', '\xe4', '\x56', '\x51', '\x60', '\xd6', '\x51', '\x71',
+                         '\x3f', '\xa2', '\xe8', '\xaa', '\x54', '\xfa', '\x66', '\x82', '\xb0', '\x4a', '\xab', '\xdd', '\x0e', '\x6a', '\xf8', '\xb0',
+                         '\xc1', '\xe6', '\xd1', '\xfb', '\x4f', '\x3d', '\xaa', '\x43', '\x7f', '\x15' };
+    fastKey.Decode_Modulus(mod);
+
+    GameMixFile* redalert_mix = new GameMixFile("RedAlert\\REDALERT.MIX", &fastKey);
+    GameMixFile::Cache("REDALERT.MIX");
+    GameMixFile* local_mix = new GameMixFile("LOCAL.MIX", &fastKey);
+    GameMixFile::Cache("LOCAL.MIX");
+
+    INIClass RuleINI;
+    GameFileClass ini_file = GameFileClass("RULES.INI");
+    RuleINI.Load(ini_file);
+
     CNCRulesDataStruct rules;
-    // Rules taken from original game
-    // Easy
-    rules.Difficulties[0].FirepowerBias = 1.000f;
-    rules.Difficulties[0].GroundspeedBias = 1.200f;
-    rules.Difficulties[0].AirspeedBias = 1.200f;
-    rules.Difficulties[0].ArmorBias = 1.200f;
-    rules.Difficulties[0].ROFBias = 0.800f;
-    rules.Difficulties[0].CostBias = 0.800f;
-    rules.Difficulties[0].BuildSpeedBias = 0.800f;
-    rules.Difficulties[0].RepairDelay = 0.001f;
-    rules.Difficulties[0].BuildDelay = 0.001f;
-    rules.Difficulties[0].IsBuildSlowdown = false;
-    rules.Difficulties[0].IsWallDestroyer = true;
-    rules.Difficulties[0].IsContentScan = true;
-    // Medium
-    rules.Difficulties[1].FirepowerBias = 1.000f;
-    rules.Difficulties[1].GroundspeedBias = 1.000f;
-    rules.Difficulties[1].AirspeedBias = 1.000f;
-    rules.Difficulties[1].ArmorBias = 1.000f;
-    rules.Difficulties[1].ROFBias = 1.000f;
-    rules.Difficulties[1].CostBias = 1.000f;
-    rules.Difficulties[1].BuildSpeedBias = 1.000f;
-    rules.Difficulties[1].RepairDelay = 0.020f;
-    rules.Difficulties[1].BuildDelay = 0.030f;
-    rules.Difficulties[1].IsBuildSlowdown = true;
-    rules.Difficulties[1].IsWallDestroyer = true;
-    rules.Difficulties[1].IsContentScan = true;
-    //Hard
-    rules.Difficulties[2].FirepowerBias = 1.000f;
-    rules.Difficulties[2].GroundspeedBias = 0.800f;
-    rules.Difficulties[2].AirspeedBias = 0.800f;
-    rules.Difficulties[2].ArmorBias = 0.800f;
-    rules.Difficulties[2].ROFBias = 1.200f;
-    rules.Difficulties[2].CostBias = 1.000f;
-    rules.Difficulties[2].BuildSpeedBias = 1.000f;
-    rules.Difficulties[2].RepairDelay = 0.050f;
-    rules.Difficulties[2].BuildDelay = 0.100f;
-    rules.Difficulties[2].IsBuildSlowdown = true;
-    rules.Difficulties[2].IsWallDestroyer = false;
-    rules.Difficulties[2].IsContentScan = false;
+    rules.Difficulties[0].FirepowerBias = RuleINI.Get_Float("Easy", "Firepower");
+    rules.Difficulties[0].GroundspeedBias = RuleINI.Get_Float("Easy", "Groundspeed");
+    rules.Difficulties[0].AirspeedBias = RuleINI.Get_Float("Easy", "Airspeed");
+    rules.Difficulties[0].ArmorBias = RuleINI.Get_Float("Easy", "Armor");
+    rules.Difficulties[0].ROFBias = RuleINI.Get_Float("Easy", "ROF");
+    rules.Difficulties[0].CostBias = RuleINI.Get_Float("Easy", "Cost");
+    rules.Difficulties[0].BuildSpeedBias = RuleINI.Get_Float("Easy", "BuildTime");
+    rules.Difficulties[0].RepairDelay = RuleINI.Get_Float("Easy", "RepairDelay");
+    rules.Difficulties[0].BuildDelay = RuleINI.Get_Float("Easy", "BuildDelay");
+    rules.Difficulties[0].IsBuildSlowdown = RuleINI.Get_Bool("Easy", "BuildSlowdown");
+    rules.Difficulties[0].IsWallDestroyer = RuleINI.Get_Bool("Easy", "DestroyWalls");
+    rules.Difficulties[0].IsContentScan = RuleINI.Get_Bool("Easy", "ContentScan");
+
+    rules.Difficulties[1].FirepowerBias = RuleINI.Get_Float("Normal", "Firepower");
+    rules.Difficulties[1].GroundspeedBias = RuleINI.Get_Float("Normal", "Groundspeed");
+    rules.Difficulties[1].AirspeedBias = RuleINI.Get_Float("Normal", "Airspeed");
+    rules.Difficulties[1].ArmorBias = RuleINI.Get_Float("Normal", "Armor");
+    rules.Difficulties[1].ROFBias = RuleINI.Get_Float("Normal", "ROF");
+    rules.Difficulties[1].CostBias = RuleINI.Get_Float("Normal", "Cost");
+    rules.Difficulties[1].BuildSpeedBias = RuleINI.Get_Float("Normal", "BuildTime");
+    rules.Difficulties[1].RepairDelay = RuleINI.Get_Float("Normal", "RepairDelay");
+    rules.Difficulties[1].BuildDelay = RuleINI.Get_Float("Normal", "BuildDelay");
+    rules.Difficulties[1].IsBuildSlowdown = RuleINI.Get_Bool("Normal", "BuildSlowdown");
+    rules.Difficulties[1].IsWallDestroyer = RuleINI.Get_Bool("Normal", "DestroyWalls");
+    rules.Difficulties[1].IsContentScan = RuleINI.Get_Bool("Normal", "ContentScan");
+
+    rules.Difficulties[2].FirepowerBias = RuleINI.Get_Float("Difficult", "Firepower");
+    rules.Difficulties[2].GroundspeedBias = RuleINI.Get_Float("Difficult", "Groundspeed");
+    rules.Difficulties[2].AirspeedBias = RuleINI.Get_Float("Difficult", "Airspeed");
+    rules.Difficulties[2].ArmorBias = RuleINI.Get_Float("Difficult", "Armor");
+    rules.Difficulties[2].ROFBias = RuleINI.Get_Float("Difficult", "ROF");
+    rules.Difficulties[2].CostBias = RuleINI.Get_Float("Difficult", "Cost");
+    rules.Difficulties[2].BuildSpeedBias = RuleINI.Get_Float("Difficult", "BuildTime");
+    rules.Difficulties[2].RepairDelay = RuleINI.Get_Float("Difficult", "RepairDelay");
+    rules.Difficulties[2].BuildDelay = RuleINI.Get_Float("Difficult", "BuildDelay");
+    rules.Difficulties[2].IsBuildSlowdown = RuleINI.Get_Bool("Difficult", "BuildSlowdown");
+    rules.Difficulties[2].IsWallDestroyer = RuleINI.Get_Bool("Difficult", "DestroyWalls");
+    rules.Difficulties[2].IsContentScan = RuleINI.Get_Bool("Difficult", "ContentScan");
     CNC_Config(rules);
 }
 
