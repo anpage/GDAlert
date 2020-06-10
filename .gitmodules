@@ -2,3 +2,6 @@
 	path = godot-cpp
 	url = https://github.com/GodotNativeTools/godot-cpp
 	branch = 3.2
+[submodule "BaseConfig"]
+	path = BaseConfig
+	url = https://github.com/TheAssemblyArmada/BaseConfig.git

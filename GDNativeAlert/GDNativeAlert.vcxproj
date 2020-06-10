@@ -13,6 +13,28 @@
   <ItemGroup>
     <ClInclude Include="CNCDll.h" />
     <ClInclude Include="GDNativeAlert.h" />
+    <ClInclude Include="io\basefile.h" />
+    <ClInclude Include="io\bfiofile.h" />
+    <ClInclude Include="io\blowfish.h" />
+    <ClInclude Include="io\blowstraw.h" />
+    <ClInclude Include="io\buffer.h" />
+    <ClInclude Include="io\cdfile.h" />
+    <ClInclude Include="io\crc.h" />
+    <ClInclude Include="io\filestraw.h" />
+    <ClInclude Include="io\gamefile.h" />
+    <ClInclude Include="io\int.h" />
+    <ClInclude Include="io\listnode.h" />
+    <ClInclude Include="io\memrev.h" />
+    <ClInclude Include="io\mixfile.h" />
+    <ClInclude Include="io\mpmath.h" />
+    <ClInclude Include="io\pk.h" />
+    <ClInclude Include="io\pkstraw.h" />
+    <ClInclude Include="io\random.h" />
+    <ClInclude Include="io\rawfile.h" />
+    <ClInclude Include="io\rndstraw.h" />
+    <ClInclude Include="io\sha.h" />
+    <ClInclude Include="io\shastraw.h" />
+    <ClInclude Include="io\straw.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\REDALERT\RedAlert.vcxproj">
@@ -22,6 +44,25 @@
   <ItemGroup>
     <ClCompile Include="GDNativeAlert.cpp" />
     <ClCompile Include="GDLibrary.cpp" />
+    <ClCompile Include="io\basefile.cpp" />
+    <ClCompile Include="io\bfiofile.cpp" />
+    <ClCompile Include="io\blowfish.cpp" />
+    <ClCompile Include="io\blowstraw.cpp" />
+    <ClCompile Include="io\buffer.cpp" />
+    <ClCompile Include="io\cdfile.cpp" />
+    <ClCompile Include="io\crc.cpp" />
+    <ClCompile Include="io\filestraw.cpp" />
+    <ClCompile Include="io\gamefile.cpp" />
+    <ClCompile Include="io\mixfile.cpp" />
+    <ClCompile Include="io\mpmath.cpp" />
+    <ClCompile Include="io\pk.cpp" />
+    <ClCompile Include="io\pkstraw.cpp" />
+    <ClCompile Include="io\random.cpp" />
+    <ClCompile Include="io\rawfile.cpp" />
+    <ClCompile Include="io\rndstraw.cpp" />
+    <ClCompile Include="io\sha.cpp" />
+    <ClCompile Include="io\shastraw.cpp" />
+    <ClCompile Include="io\straw.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -58,21 +99,21 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\REDALERT\include;$(ProjectDir)..\godot-cpp\godot_headers;$(ProjectDir)..\godot-cpp\include;$(ProjectDir)..\godot-cpp\include\core;$(ProjectDir)..\godot-cpp\include\gen;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)io;$(ProjectDir)..\REDALERT\include;$(ProjectDir)..\godot-cpp\godot_headers;$(ProjectDir)..\godot-cpp\include;$(ProjectDir)..\godot-cpp\include\core;$(ProjectDir)..\godot-cpp\include\gen;$(ProjectDir)..\BaseConfig\src;$(ProjectDir)..\BaseConfig\build\src;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)GDAlert\bin\</OutDir>
-    <LibraryPath>$(SolutionDir)godot-cpp\bin;$(SolutionDir)GDAlert\bin\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)BaseConfig\build\Debug;$(SolutionDir)godot-cpp\bin;$(SolutionDir)GDAlert\bin\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\REDALERT\include;$(ProjectDir)..\godot-cpp\godot_headers;$(ProjectDir)..\godot-cpp\include;$(ProjectDir)..\godot-cpp\include\core;$(ProjectDir)..\godot-cpp\include\gen;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)io;$(ProjectDir)..\REDALERT\include;$(ProjectDir)..\godot-cpp\godot_headers;$(ProjectDir)..\godot-cpp\include;$(ProjectDir)..\godot-cpp\include\core;$(ProjectDir)..\godot-cpp\include\gen;$(ProjectDir)..\BaseConfig\src;$(ProjectDir)..\BaseConfig\build\src;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)GDAlert\bin\</OutDir>
-    <LibraryPath>$(SolutionDir)godot-cpp\bin;$(SolutionDir)GDAlert\bin\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)BaseConfig\build\Release;$(SolutionDir)godot-cpp\bin;$(SolutionDir)GDAlert\bin\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;GDNATIVEALERT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;GDNATIVEALERT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <DisableSpecificWarnings>4800;4244;4996</DisableSpecificWarnings>
@@ -83,7 +124,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>RedAlert.lib;libgodot-cpp.windows.debug.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;RedAlert.lib;libgodot-cpp.windows.debug.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -92,7 +133,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;GDNATIVEALERT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;GDNATIVEALERT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <DisableSpecificWarnings>4800;4244;4996</DisableSpecificWarnings>
@@ -103,7 +144,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>RedAlert.lib;libgodot-cpp.windows.release.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;RedAlert.lib;libgodot-cpp.windows.release.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
