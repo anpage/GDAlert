@@ -76,7 +76,6 @@ void GDNativeAlert::_init() {
 
     GameMixFile* redalert_mix = new GameMixFile("RedAlert\\REDALERT.MIX", &fastKey);
     GameMixFile* local_mix = new GameMixFile("LOCAL.MIX", &fastKey);
-    GameMixFile::Cache("LOCAL.MIX");
     GameMixFile* speech_mix = new GameMixFile("SPEECH.MIX", &fastKey);
     GameMixFile::Cache("SPEECH.MIX");
 
