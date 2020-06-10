@@ -43,6 +43,13 @@ func _ready():
 	texture = ImageTexture.new()
 	texture.create_from_image(game_image)
 
+	var score_player: AudioStreamPlayer = get_node("/root/main/ScorePlayer")
+	var score_sample: AudioStreamSample = RedAlert.get_score_sample("BIGF226M.AUD")
+	score_sample.loop_mode = AudioStreamSample.LOOP_FORWARD
+	score_sample.loop_end = score_sample.data.size()
+	score_player.set_stream(score_sample)
+	score_player.play()
+
 func _process(delta):
 	time_since_game_tick += delta
 

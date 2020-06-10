@@ -10,7 +10,6 @@
 
 #include <ProjectSettings.hpp>
 #include <ConfigFile.hpp>
-#include <AudioStreamSample.hpp>
 #include <AudioStreamPlayer.hpp>
 
 #include "mixfile.h"
@@ -32,6 +31,7 @@ void GDNativeAlert::_register_methods() {
     register_method("cnc_handle_right_mouse_up", &GDNativeAlert::cnc_handle_right_mouse_up);
     register_method("cnc_handle_right_mouse_down", &GDNativeAlert::cnc_handle_right_mouse_down);
     register_method("cnc_handle_mouse_area", &GDNativeAlert::cnc_handle_mouse_area);
+    register_method("get_score_sample", &GDNativeAlert::get_score_sample);
 
     register_signal<GDNativeAlert>("event", "message", GODOT_VARIANT_TYPE_STRING);
     register_signal<GDNativeAlert>("play_sound", "sample", GODOT_VARIANT_TYPE_OBJECT, "x", GODOT_VARIANT_TYPE_INT, "y", GODOT_VARIANT_TYPE_INT);
@@ -88,6 +88,9 @@ void GDNativeAlert::_init() {
     GameMixFile* russian_mix = new GameMixFile("RUSSIAN.MIX", &fastKey);
     GameMixFile::Cache("RUSSIAN.MIX");
 
+    GameMixFile* scores_mix = new GameMixFile("SCORES.MIX", &fastKey);
+    GameMixFile::Cache("SCORES.MIX");
+
     INIClass RuleINI;
     GameFileClass ini_file = GameFileClass("RULES.INI");
     RuleINI.Load(ini_file);
@@ -134,7 +137,7 @@ void GDNativeAlert::_init() {
     CNC_Config(rules);
 }
 
-void GDNativeAlert::play_sound(String name, bool is_speech, int x = 0, int y = 0) {
+AudioStreamSample* GDNativeAlert::decode_aud(String name) {
     char* filename;
     if (name.find(".") == -1) {
         filename = (name + ".AUD").alloc_c_string();
@@ -145,7 +148,7 @@ void GDNativeAlert::play_sound(String name, bool is_speech, int x = 0, int y = 0
     unsigned char* aud_data = (unsigned char*)GameMixFile::Retrieve(filename);
     if (filename != nullptr) godot::api->godot_free(filename);
 
-    if (aud_data == nullptr) return;
+    if (aud_data == nullptr) return nullptr;
 
     ADPCMStreamType stream_info;
 
@@ -164,7 +167,7 @@ void GDNativeAlert::play_sound(String name, bool is_speech, int x = 0, int y = 0
     }
     else
     {
-        return;
+        return nullptr;
     }
 
     unsigned char* dechunk_pba_data = new unsigned char[stream_info.m_CompSize];
@@ -197,14 +200,23 @@ void GDNativeAlert::play_sound(String name, bool is_speech, int x = 0, int y = 0
         sample->set_mix_rate(raw_header.m_Rate);
         sample->set_data(sound_buffer);
 
-        if (is_speech || x < 1 || y < 1)
-        {
-            emit_signal("play_speech", sample);
-        }
-        else
-        {
-            emit_signal("play_sound", sample, x, y);
-        }
+        return sample;
+    }
+}
+
+AudioStreamSample* GDNativeAlert::get_score_sample(String name) {
+    return decode_aud(name);
+}
+
+void GDNativeAlert::play_sound(String name, bool is_speech, int x = 0, int y = 0) {
+    AudioStreamSample* sample = decode_aud(name);
+    if (is_speech || x < 1 || y < 1)
+    {
+        emit_signal("play_speech", sample);
+    }
+    else
+    {
+        emit_signal("play_sound", sample, x, y);
     }
 }
 

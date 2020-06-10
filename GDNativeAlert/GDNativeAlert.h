@@ -5,6 +5,7 @@
 #include <PoolArrays.hpp>
 #include <Node.hpp>
 #include <String.hpp>
+#include <AudioStreamSample.hpp>
 
 #include "CNCDll.h"
 
@@ -20,6 +21,8 @@ namespace godot {
         static void event_callback(const EventCallbackStruct& event);
         void handle_event(const EventCallbackStruct& event);
 
+        static AudioStreamSample* decode_aud(String name);
+
         PoolByteArray game_buffer_pba;
         unsigned char game_buffer[GAME_BUFFER_SIZE];
         PoolByteArray speech_buffer;
@@ -34,6 +37,7 @@ namespace godot {
 
         void _init();
 
+        AudioStreamSample* get_score_sample(String name);
         void play_sound(String name, bool isSpeech, int x, int y);
 
         bool cnc_start_instance(int scenario_index, int build_level, String faction);

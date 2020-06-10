@@ -39,6 +39,7 @@ editor_draw_limits = true
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="FramerateLabel" type="RichTextLabel" parent="CanvasLayer"]
+visible = false
 margin_left = 10.0
 margin_top = 7.0
 margin_right = 137.0
@@ -49,6 +50,6 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Player" type="AudioStreamPlayer" parent="."]
+[node name="ScorePlayer" type="AudioStreamPlayer" parent="."]
 volume_db = -15.0
 [connection signal="select_rect_finish" from="RedAlertGraphics/Rubberband" to="RedAlertGraphics" method="_on_select_rect_finish"]
