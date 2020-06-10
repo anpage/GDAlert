@@ -93,16 +93,9 @@ LockedDataType g_LockedData;
 /**
  * Simple copies one buffer to another.
  */
-int Simple_Copy(void** source, int* ssize, void** alternate, int* altsize, void** dest, int size)
+int Simple_Copy(void** source, int* ssize, void** dest, int size)
 {
     int out = 0;
-
-    if (*ssize == 0) {
-        *source = *alternate;
-        *ssize = *altsize;
-        *alternate = nullptr;
-        *altsize = 0;
-    }
 
     if (*source == nullptr || *ssize == 0) {
         return out;
@@ -124,12 +117,7 @@ int Simple_Copy(void** source, int* ssize, void** alternate, int* altsize, void*
         return out;
     }
 
-    *source = *alternate;
-    *ssize = *altsize;
-    *alternate = nullptr;
-    *altsize = 0;
-
-    out = Simple_Copy(source, ssize, alternate, altsize, dest, (size - s)) + s;
+    out = Simple_Copy(source, ssize, dest, (size - s)) + s;
 
     return out;
 }
@@ -137,17 +125,9 @@ int Simple_Copy(void** source, int* ssize, void** alternate, int* altsize, void*
 /**
  * Copies one buffer to another, decompressing if needed.
  */
-int Sample_Copy(SampleTrackerType* st, void** source, int* ssize, void** alternate, int* altsize, void* dest, int size,
-    SoundCompressType scomp, void* trailer, int16_t* trailersize)
+int Sample_Copy(ADPCMStreamType* st, void** source, int* ssize, void* dest, int size, void* uncompbuf)
 {
     int datasize = 0;
-
-    // There is no compression or it doesn't match any of the supported compressions so we just copy the data over.
-    if (scomp == COMP_NONE || (scomp != COMP_ZAP && scomp != COMP_ADPCM)) {
-        return Simple_Copy(source, ssize, alternate, altsize, &dest, size);
-    }
-
-    ADPCMStreamType* s = &st->m_StreamInfo;
 
     while (size > 0) {
         uint16_t fsize;
@@ -159,41 +139,38 @@ int Sample_Copy(SampleTrackerType* st, void** source, int* ssize, void** alterna
         void* mptr = &magic;
 
         // Verify and seek over the chunk header.
-        if (Simple_Copy(source, ssize, alternate, altsize, &fptr, sizeof(fsize)) < sizeof(fsize)) {
+        if (Simple_Copy(source, ssize, &fptr, sizeof(fsize)) < sizeof(fsize)) {
             break;
         }
 
-        if (Simple_Copy(source, ssize, alternate, altsize, &dptr, sizeof(dsize)) < sizeof(dsize) || dsize > size) {
+        if (Simple_Copy(source, ssize, &dptr, sizeof(dsize)) < sizeof(dsize) || dsize > size) {
             break;
         }
 
-        if (Simple_Copy(source, ssize, alternate, altsize, &mptr, sizeof(magic)) < sizeof(magic)
-            || magic != g_LockedData.m_MagicNumber) {
+        if (Simple_Copy(source, ssize, &mptr, sizeof(magic)) < sizeof(magic)
+            || magic != AUD_CHUNK_MAGIC_ID) {
             break;
         }
 
         if (fsize == dsize) {
             // File size matches size to decompress, so there's nothing to do other than copy the buffer over.
-            if (Simple_Copy(source, ssize, alternate, altsize, &dest, fsize) < dsize) {
+            if (Simple_Copy(source, ssize, &dest, fsize) < dsize) {
                 return datasize;
             }
         }
         else {
             // Else we need to decompress it.
-            void* uptr = g_LockedData.m_UncompBuffer;
+            void* uptr = uncompbuf;
 
-            if (Simple_Copy(source, ssize, alternate, altsize, &uptr, fsize) < fsize) {
+            if (Simple_Copy(source, ssize, &uptr, fsize) < fsize) {
                 return datasize;
             }
 
-            if (scomp == COMP_ZAP) {
-                Audio_Unzap(g_LockedData.m_UncompBuffer, dest, dsize);
-            }
             else {
-                s->m_Source = g_LockedData.m_UncompBuffer;
-                s->m_Dest = dest;
+                st->m_Source = uncompbuf;
+                st->m_Dest = dest;
 
-                ADPCM_Decompress(s, dsize);
+                ADPCM_Decompress(st, dsize);
             }
 
             dest = reinterpret_cast<char*>(dest) + dsize;

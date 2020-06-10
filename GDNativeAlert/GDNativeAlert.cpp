@@ -34,6 +34,8 @@ void GDNativeAlert::_register_methods() {
     register_method("cnc_handle_mouse_area", &GDNativeAlert::cnc_handle_mouse_area);
 
     register_signal<GDNativeAlert>("event", "message", GODOT_VARIANT_TYPE_STRING);
+    register_signal<GDNativeAlert>("play_sound", "sample", GODOT_VARIANT_TYPE_OBJECT, "x", GODOT_VARIANT_TYPE_INT, "y", GODOT_VARIANT_TYPE_INT);
+    register_signal<GDNativeAlert>("play_speech", "sample", GODOT_VARIANT_TYPE_OBJECT);
 }
 
 GDNativeAlert::GDNativeAlert() {
@@ -73,11 +75,16 @@ void GDNativeAlert::_init() {
     fastKey.Decode_Modulus(mod);
 
     GameMixFile* redalert_mix = new GameMixFile("RedAlert\\REDALERT.MIX", &fastKey);
-    GameMixFile::Cache("REDALERT.MIX");
     GameMixFile* local_mix = new GameMixFile("LOCAL.MIX", &fastKey);
     GameMixFile::Cache("LOCAL.MIX");
     GameMixFile* speech_mix = new GameMixFile("SPEECH.MIX", &fastKey);
     GameMixFile::Cache("SPEECH.MIX");
+
+    GameMixFile* main_mix = new GameMixFile("RedAlert\\MAIN.MIX", &fastKey);
+    GameMixFile* sounds_mix = new GameMixFile("SOUNDS.MIX", &fastKey);
+    GameMixFile::Cache("SOUNDS.MIX");
+    GameMixFile* allies_mix = new GameMixFile("ALLIES.MIX", &fastKey);
+    bool cached = allies_mix->Cache();
 
     INIClass RuleINI;
     GameFileClass ini_file = GameFileClass("RULES.INI");
@@ -125,16 +132,25 @@ void GDNativeAlert::_init() {
     CNC_Config(rules);
 }
 
-void GDNativeAlert::play_speech(String name) {
-    char* filename = (name + ".AUD").alloc_c_string();
-    void* new_opt = GameMixFile::Retrieve(filename);
+void GDNativeAlert::play_sound(String name, bool is_speech, int x = 0, int y = 0) {
+    char* filename;
+    if (name.find(".") == -1) {
+        filename = (name + ".AUD").alloc_c_string();
+    } else {
+        filename = name.alloc_c_string();
+    }
+
+    unsigned char* aud_data = (unsigned char*)GameMixFile::Retrieve(filename);
     if (filename != nullptr) godot::api->godot_free(filename);
+
+    if (aud_data == nullptr) return;
 
     ADPCMStreamType stream_info;
 
-    // Read in the sample's header.
+    // Read in the file's header.
     AUDHeaderStruct raw_header;
-    memcpy(&raw_header, new_opt, sizeof(raw_header));
+    memcpy(&raw_header, aud_data, sizeof(raw_header));
+    aud_data += sizeof(raw_header);
 
     // Compression is ADPCM so we need to init its stream info.
     if (raw_header.m_Compression == COMP_ADPCM) {
@@ -144,33 +160,50 @@ void GDNativeAlert::play_speech(String name) {
         stream_info.m_UnCompSize = raw_header.m_Size * (stream_info.m_BitsPerSample / 4);
         ADPCM_Stream_Init(&stream_info);
     }
-    stream_info.m_Source = new_opt;
-
-    speech_buffer.resize(stream_info.m_UnCompSize);
-    // Get pointer to byte array data
-    PoolByteArray::Write pba_write = speech_buffer.write();
-    unsigned char* pba_data = pba_write.ptr();
-    stream_info.m_Dest = pba_data;
-
-    ADPCM_Decompress(&stream_info, stream_info.m_UnCompSize);
-
-    godot::api->godot_free(&pba_write);
-
-    AudioStreamSample* sample = AudioStreamSample::_new();
-    if (stream_info.m_BitsPerSample == 16)
+    else
     {
-        sample->set_format(AudioStreamSample::FORMAT_16_BITS);
+        return;
     }
-    if (stream_info.m_Channels == 2)
-    {
-        sample->set_stereo(true);
-    }
-    sample->set_mix_rate(raw_header.m_Rate);
-    sample->set_data(speech_buffer);
 
-    AudioStreamPlayer* player = (AudioStreamPlayer*)get_node("/root/main/Player");
-    player->set_stream(sample);
-    player->play();
+    unsigned char* dechunk_pba_data = new unsigned char[stream_info.m_CompSize];
+    unsigned char* pba_data = new unsigned char[stream_info.m_UnCompSize];
+
+    void* aud_data_buf = (void*)aud_data;
+    int out_size = Sample_Copy(&stream_info, &aud_data_buf, &stream_info.m_CompSize, pba_data, stream_info.m_UnCompSize, dechunk_pba_data);
+
+    PoolByteArray sound_buffer;
+    sound_buffer.resize(out_size);
+    PoolByteArray::Write sound_buffer_write = sound_buffer.write();
+    unsigned char* sound_buffer_data = sound_buffer_write.ptr();
+
+    memcpy(sound_buffer_data, pba_data, out_size);
+
+    delete[] dechunk_pba_data;
+    delete[] pba_data;
+
+    if (out_size)
+    {
+        AudioStreamSample* sample = AudioStreamSample::_new();
+        if (stream_info.m_BitsPerSample == 16)
+        {
+            sample->set_format(AudioStreamSample::FORMAT_16_BITS);
+        }
+        if (stream_info.m_Channels == 2)
+        {
+            sample->set_stereo(true);
+        }
+        sample->set_mix_rate(raw_header.m_Rate);
+        sample->set_data(sound_buffer);
+
+        if (is_speech || x < 1 || y < 1)
+        {
+            emit_signal("play_speech", sample);
+        }
+        else
+        {
+            emit_signal("play_sound", sample, x, y);
+        }
+    }
 }
 
 GDNativeAlert* GDNativeAlert::callback_instance;
@@ -195,13 +228,16 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
         {
             String effect(event.SoundEffect.SoundEffectName);
             message = "Sound effect: " + effect;
+            CNCMapDataStruct* state = new CNCMapDataStruct;
+            CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)state, sizeof(CNCMapDataStruct));
+            play_sound(event.SoundEffect.SoundEffectName, false, event.SoundEffect.PixelX - (state->MapCellX * 24.5), event.SoundEffect.PixelY - (state->MapCellY * 24.5));
         }
         break;
         case (CALLBACK_EVENT_SPEECH):
         {
             String speech(event.Speech.SpeechName);
             message = "Speech: " + speech;
-            play_speech(event.Speech.SpeechName);
+            play_sound(event.Speech.SpeechName, true);
         }
         break;
         case (CALLBACK_EVENT_GAME_OVER):

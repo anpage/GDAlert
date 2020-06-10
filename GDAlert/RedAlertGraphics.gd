@@ -12,8 +12,30 @@ var time_since_game_tick = 0.0
 func debug_message(msg):
 	print (msg)
 
+func play_speech(sample: AudioStreamSample):
+	var player: AudioStreamPlayer = AudioStreamPlayer.new()
+	add_child(player)
+	player.set_stream(sample)
+	player.volume_db = -15;
+	player.play()
+	yield(player, "finished")
+	player.queue_free()
+
+func play_sound(sample: AudioStreamSample, x: int, y: int):
+	var player: AudioStreamPlayer2D = AudioStreamPlayer2D.new()
+	var main: Control = get_node("/root/main")
+	main.add_child(player)
+	player.set_stream(sample)
+	player.position = Vector2(x, y)
+	player.volume_db = -15;
+	player.play()
+	yield(player, "finished")
+	player.queue_free()
+
 func _ready():
 	RedAlert.connect("event", self, "debug_message");
+	RedAlert.connect("play_sound", self, "play_sound");
+	RedAlert.connect("play_speech", self, "play_speech");
 	# RedAlert.cnc_start_instance(scenario_number, build_level, "ALLY" or "USSR")
 	RedAlert.cnc_start_instance(1, 10, "ALLY")
 	game_image.create(256, 256, false, Image.FORMAT_RGBA8)

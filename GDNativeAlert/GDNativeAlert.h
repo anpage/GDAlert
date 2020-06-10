@@ -34,7 +34,7 @@ namespace godot {
 
         void _init();
 
-        void play_speech(String name);
+        void play_sound(String name, bool isSpeech, int x, int y);
 
         bool cnc_start_instance(int scenario_index, int build_level, String faction);
         bool cnc_advance_instance();

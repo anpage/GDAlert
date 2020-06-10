@@ -96,4 +96,6 @@ void Stop_Primary_Sound_Buffer();
 void Suspend_Audio_Thread();
 void Resume_Audio_Thread();
 
+int Sample_Copy(ADPCMStreamType* st, void** source, int* ssize, void* dest, int size, void* uncompbuf);
+
 #endif // AUDIO_H
