@@ -84,7 +84,9 @@ void GDNativeAlert::_init() {
     GameMixFile* sounds_mix = new GameMixFile("SOUNDS.MIX", &fastKey);
     GameMixFile::Cache("SOUNDS.MIX");
     GameMixFile* allies_mix = new GameMixFile("ALLIES.MIX", &fastKey);
-    bool cached = allies_mix->Cache();
+    GameMixFile::Cache("ALLIES.MIX");
+    GameMixFile* russian_mix = new GameMixFile("RUSSIAN.MIX", &fastKey);
+    GameMixFile::Cache("RUSSIAN.MIX");
 
     INIClass RuleINI;
     GameFileClass ini_file = GameFileClass("RULES.INI");
