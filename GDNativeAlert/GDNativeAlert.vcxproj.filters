@@ -93,6 +93,24 @@
     <ClInclude Include="io\mpmath.h">
       <Filter>Header Files\io</Filter>
     </ClInclude>
+    <ClInclude Include="io\ini.h">
+      <Filter>Header Files\io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\fixed.h">
+      <Filter>Header Files\io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\index.h">
+      <Filter>Header Files\io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\pipe.h">
+      <Filter>Header Files\io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\filepipe.h">
+      <Filter>Header Files\io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\readline.h">
+      <Filter>Header Files\io</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GDLibrary.cpp">
@@ -156,6 +174,21 @@
       <Filter>Source Files\io</Filter>
     </ClCompile>
     <ClCompile Include="io\mpmath.cpp">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="io\ini.cpp">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="io\fixed.cpp">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="io\pipe.cpp">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="io\filepipe.cpp">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="io\readline.cpp">
       <Filter>Source Files\io</Filter>
     </ClCompile>
   </ItemGroup>
