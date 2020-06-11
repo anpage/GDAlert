@@ -22,15 +22,15 @@
 using namespace godot;
 
 void GDNativeAlert::_register_methods() {
-    register_method("cnc_start_instance", &GDNativeAlert::cnc_start_instance);
-    register_method("cnc_advance_instance", &GDNativeAlert::cnc_advance_instance);
-    register_method("cnc_get_visible_page", &GDNativeAlert::cnc_get_visible_page);
-    register_method("cnc_get_visible_page_width", &GDNativeAlert::cnc_get_visible_page_width);
-    register_method("cnc_get_visible_page_height", &GDNativeAlert::cnc_get_visible_page_height);
-    register_method("cnc_handle_left_mouse_up", &GDNativeAlert::cnc_handle_left_mouse_up);
-    register_method("cnc_handle_right_mouse_up", &GDNativeAlert::cnc_handle_right_mouse_up);
-    register_method("cnc_handle_right_mouse_down", &GDNativeAlert::cnc_handle_right_mouse_down);
-    register_method("cnc_handle_mouse_area", &GDNativeAlert::cnc_handle_mouse_area);
+    register_method("start_instance", &GDNativeAlert::start_instance);
+    register_method("advance_instance", &GDNativeAlert::advance_instance);
+    register_method("get_visible_page", &GDNativeAlert::get_visible_page);
+    register_method("get_visible_page_width", &GDNativeAlert::get_visible_page_width);
+    register_method("get_visible_page_height", &GDNativeAlert::get_visible_page_height);
+    register_method("handle_left_mouse_up", &GDNativeAlert::handle_left_mouse_up);
+    register_method("handle_right_mouse_up", &GDNativeAlert::handle_right_mouse_up);
+    register_method("handle_right_mouse_down", &GDNativeAlert::handle_right_mouse_down);
+    register_method("handle_mouse_area", &GDNativeAlert::handle_mouse_area);
     register_method("get_score_sample", &GDNativeAlert::get_score_sample);
 
     register_signal<GDNativeAlert>("event", "message", GODOT_VARIANT_TYPE_STRING);
@@ -308,21 +308,21 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
     }
 }
 
-bool GDNativeAlert::cnc_start_instance(int scenario_index, int build_level, String faction) {
+bool GDNativeAlert::start_instance(int scenario_index, int build_level, String faction) {
     char* faction_cstr = faction.alloc_c_string();
     return CNC_Start_Instance(scenario_index, build_level, faction_cstr, "GAME_NORMAL", "", NULL, NULL);
     if (faction_cstr != nullptr) godot::api->godot_free(faction_cstr);
 }
 
-bool GDNativeAlert::cnc_advance_instance() {
+bool GDNativeAlert::advance_instance() {
     return CNC_Advance_Instance(0);
 }
 
-PoolByteArray GDNativeAlert::cnc_get_visible_page() {
-    // Get palette
+PoolByteArray GDNativeAlert::get_palette() {
     unsigned char palette[256][3];
     CNC_Get_Palette(palette);
 
+PoolByteArray GDNativeAlert::get_visible_page() {
     // Get visible page
     unsigned int width = 0;
     unsigned int height = 0;
@@ -354,26 +354,26 @@ PoolByteArray GDNativeAlert::cnc_get_visible_page() {
     return game_buffer_pba;
 }
 
-unsigned int GDNativeAlert::cnc_get_visible_page_width() {
+unsigned int GDNativeAlert::get_visible_page_width() {
     return game_buffer_width;
 }
 
-unsigned int GDNativeAlert::cnc_get_visible_page_height() {
+unsigned int GDNativeAlert::get_visible_page_height() {
     return game_buffer_height;
 }
 
-void GDNativeAlert::cnc_handle_left_mouse_up(unsigned int x, unsigned int y) {
+void GDNativeAlert::handle_left_mouse_up(unsigned int x, unsigned int y) {
     CNC_Handle_Input(INPUT_REQUEST_MOUSE_LEFT_CLICK, NULL, 0, x, y, NULL, NULL);
 }
 
-void GDNativeAlert::cnc_handle_right_mouse_up(unsigned int x, unsigned int y) {
+void GDNativeAlert::handle_right_mouse_up(unsigned int x, unsigned int y) {
     CNC_Handle_Input(INPUT_REQUEST_MOUSE_RIGHT_CLICK, NULL, 0, x, y, NULL, NULL);
 }
 
-void GDNativeAlert::cnc_handle_right_mouse_down(unsigned int x, unsigned int y) {
+void GDNativeAlert::handle_right_mouse_down(unsigned int x, unsigned int y) {
     CNC_Handle_Input(INPUT_REQUEST_MOUSE_RIGHT_DOWN, NULL, 0, x, y, NULL, NULL);
 }
 
-void GDNativeAlert::cnc_handle_mouse_area(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2) {
+void GDNativeAlert::handle_mouse_area(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2) {
     CNC_Handle_Input(INPUT_REQUEST_MOUSE_AREA, NULL, 0, x1, y1, x2, y2);
 }

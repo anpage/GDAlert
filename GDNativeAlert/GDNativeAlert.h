@@ -40,15 +40,15 @@ namespace godot {
         AudioStreamSample* get_score_sample(String name);
         void play_sound(String name, bool isSpeech, int x, int y);
 
-        bool cnc_start_instance(int scenario_index, int build_level, String faction);
-        bool cnc_advance_instance();
-        PoolByteArray cnc_get_visible_page();
-        unsigned int cnc_get_visible_page_width();
-        unsigned int cnc_get_visible_page_height();
-        void cnc_handle_left_mouse_up(unsigned int x, unsigned int y);
-        void cnc_handle_right_mouse_up(unsigned int x, unsigned int y);
-        void cnc_handle_right_mouse_down(unsigned int x, unsigned int y);
-        void cnc_handle_mouse_area(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2);
+        bool start_instance(int scenario_index, int build_level, String faction);
+        bool advance_instance();
+        PoolByteArray get_visible_page();
+        unsigned int get_visible_page_width();
+        unsigned int get_visible_page_height();
+        void handle_left_mouse_up(unsigned int x, unsigned int y);
+        void handle_right_mouse_up(unsigned int x, unsigned int y);
+        void handle_right_mouse_down(unsigned int x, unsigned int y);
+        void handle_mouse_area(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2);
     };
 
 }
