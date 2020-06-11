@@ -3,6 +3,8 @@ extends TextureRect
 var page_width = 0
 var page_height = 0
 var game_image = Image.new()
+var game_palette_image = Image.new()
+var game_palette_texture = ImageTexture.new()
 var has_selected = false
 var is_scrolling = false
 var scroll_start = Vector2(0, 0)
@@ -38,10 +40,17 @@ func _ready():
 	RedAlert.connect("play_speech", self, "play_speech");
 	# RedAlert.start_instance(scenario_number, build_level, "ALLY" or "USSR")
 	RedAlert.start_instance(1, 10, "ALLY")
+	game_image.create(256, 256, false, Image.FORMAT_L8)
 	game_image.fill(Color(1,0,0,1))
 	texture = ImageTexture.new()
 	texture.create_from_image(game_image)
 	texture.flags = 0
+
+	game_palette_image.create(256, 1, false, Image.FORMAT_RGB8)
+	game_palette_texture = ImageTexture.new()
+	game_palette_texture.create_from_image(game_palette_image)
+	game_palette_texture.flags = 0
+	material.set_shader_param("palette_tex", game_palette_texture)
 
 	var score_player: AudioStreamPlayer = get_node("/root/main/ScorePlayer")
 	var score_sample: AudioStreamSample = RedAlert.get_score_sample("BIGF226M.AUD")
@@ -57,17 +66,20 @@ func _process(delta):
 		RedAlert.advance_instance(0)
 		time_since_game_tick = 0
 
+	var palette = RedAlert.get_palette()
+	game_palette_image.data.data = palette
+	game_palette_texture.set_data(game_palette_image)
+
 	var data = RedAlert.get_visible_page()
 	var width = RedAlert.get_visible_page_width()
 	var height = RedAlert.get_visible_page_height()
 	if width != page_width or height != page_height:
 		page_width = width
 		page_height = height
+		game_image.create(width, height, false, Image.FORMAT_L8)
 		texture.set_size_override(Vector2(width, height))
 	game_image.data.data = data
 	texture.set_data(game_image)
-	texture.flags = 0
-	texture.set_size_override(Vector2(width, height))
 
 func _gui_input(event):
 	if event is InputEventMouseButton:

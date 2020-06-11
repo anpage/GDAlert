@@ -24,6 +24,7 @@ using namespace godot;
 void GDNativeAlert::_register_methods() {
     register_method("start_instance", &GDNativeAlert::start_instance);
     register_method("advance_instance", &GDNativeAlert::advance_instance);
+    register_method("get_palette", &GDNativeAlert::get_palette);
     register_method("get_visible_page", &GDNativeAlert::get_visible_page);
     register_method("get_visible_page_width", &GDNativeAlert::get_visible_page_width);
     register_method("get_visible_page_height", &GDNativeAlert::get_visible_page_height);
@@ -45,8 +46,7 @@ GDNativeAlert::~GDNativeAlert() {
 }
 
 void GDNativeAlert::_init() {
-    game_buffer_width = 0;
-    game_buffer_height = 0;
+    game_palette_pba.resize(256 * 3);
 
     String content_path = ProjectSettings::get_singleton()->globalize_path("res://RedAlert");
     String command_line = "-CD\"" + content_path.replace("/", "\\") + "\"";
@@ -309,6 +309,10 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
 }
 
 bool GDNativeAlert::start_instance(int scenario_index, int build_level, String faction) {
+    game_buffer_pba.resize(3072 * 3072);
+    game_buffer_width = 3072;
+    game_buffer_height = 3072;
+
     char* faction_cstr = faction.alloc_c_string();
     return CNC_Start_Instance(scenario_index, build_level, faction_cstr, "GAME_NORMAL", "", NULL, NULL);
     if (faction_cstr != nullptr) godot::api->godot_free(faction_cstr);
@@ -320,35 +324,33 @@ bool GDNativeAlert::advance_instance() {
 
 PoolByteArray GDNativeAlert::get_palette() {
     unsigned char palette[256][3];
-    CNC_Get_Palette(palette);
+    CNC_Get_Palette((unsigned char(&)[256][3])palette);
+    // Get palette
+    {
+        PoolByteArray::Write palette_pba_write = game_palette_pba.write();
+        unsigned char* palette_pba_data = palette_pba_write.ptr();
+        memcpy(palette_pba_data, palette, 256 * 3);
+    }
+    return game_palette_pba;
+}
 
 PoolByteArray GDNativeAlert::get_visible_page() {
     // Get visible page
     unsigned int width = 0;
     unsigned int height = 0;
-    CNC_Get_Visible_Page(game_buffer, width, height);
+
+    // Get pointer to byte array data
+    {
+        PoolByteArray::Write pba_write = game_buffer_pba.write();
+        unsigned char* pba_data = pba_write.ptr();
+        CNC_Get_Visible_Page(pba_data, width, height);
+    }
+
     if (width != game_buffer_width || height != game_buffer_height)
     {
         game_buffer_width = width;
         game_buffer_height = height;
-        game_buffer_pba.resize(width * height * 4);
-    }
-
-    // Get pointer to byte array data
-    PoolByteArray::Write pba_write = game_buffer_pba.write();
-    unsigned char* pba_data = pba_write.ptr();
-
-    // Convert visible page to FORMAT_RGBA8
-    for (unsigned int pixel = 0; pixel < width * height; pixel++)
-    {
-        unsigned int pixel_out = pixel * 4;
-        for (unsigned int component = 0; component <= 2; component++)
-        {
-            // R, G, and B
-            pba_data[pixel_out + component] = palette[game_buffer[pixel]][component] << 2;
-        }
-        // A
-        pba_data[pixel_out + 3] = 0xFF;
+        game_buffer_pba.resize(width * height);
     }
 
     return game_buffer_pba;

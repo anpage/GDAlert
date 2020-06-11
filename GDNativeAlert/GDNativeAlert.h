@@ -9,8 +9,6 @@
 
 #include "CNCDll.h"
 
-#define GAME_BUFFER_SIZE 0xFFFFFFF // 255 MB, yay overkill!
-
 namespace godot {
 
     class GDNativeAlert : public Node {
@@ -24,7 +22,7 @@ namespace godot {
         static AudioStreamSample* decode_aud(String name);
 
         PoolByteArray game_buffer_pba;
-        unsigned char game_buffer[GAME_BUFFER_SIZE];
+        PoolByteArray game_palette_pba;
         PoolByteArray speech_buffer;
         unsigned int game_buffer_width;
         unsigned int game_buffer_height;
@@ -42,6 +40,7 @@ namespace godot {
 
         bool start_instance(int scenario_index, int build_level, String faction);
         bool advance_instance();
+        PoolByteArray get_palette();
         PoolByteArray get_visible_page();
         unsigned int get_visible_page_width();
         unsigned int get_visible_page_height();

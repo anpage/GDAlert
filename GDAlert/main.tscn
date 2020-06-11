@@ -1,9 +1,13 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://FramerateLabel.gd" type="Script" id=1]
 [ext_resource path="res://RedAlertGraphics.gd" type="Script" id=2]
 [ext_resource path="res://Rubberband.tscn" type="PackedScene" id=3]
 [ext_resource path="res://RedAlertPlaceholder.png" type="Texture" id=4]
+[ext_resource path="res://depalettize.shader" type="Shader" id=5]
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = ExtResource( 5 )
 
 [sub_resource type="StyleBoxFlat" id=1]
 bg_color = Color( 0, 0, 0, 0.576471 )
@@ -18,10 +22,12 @@ __meta__ = {
 }
 
 [node name="RedAlertGraphics" type="TextureRect" parent="."]
+material = SubResource( 2 )
 texture = ExtResource( 4 )
 stretch_mode = 3
 script = ExtResource( 2 )
 __meta__ = {
+"_edit_lock_": true,
 "_edit_use_anchors_": false
 }
 
@@ -35,11 +41,13 @@ anchor_mode = 0
 current = true
 zoom = Vector2( 0.5, 0.5 )
 editor_draw_limits = true
+__meta__ = {
+"_edit_lock_": true
+}
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="FramerateLabel" type="RichTextLabel" parent="CanvasLayer"]
-visible = false
 margin_left = 10.0
 margin_top = 7.0
 margin_right = 137.0
