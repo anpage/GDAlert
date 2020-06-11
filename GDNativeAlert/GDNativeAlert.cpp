@@ -239,8 +239,6 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
         break;
         case (CALLBACK_EVENT_SOUND_EFFECT):
         {
-            String effect(event.SoundEffect.SoundEffectName);
-            message = "Sound effect: " + effect;
             CNCMapDataStruct* state = new CNCMapDataStruct;
             CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)state, sizeof(CNCMapDataStruct));
             play_sound(event.SoundEffect.SoundEffectName, false, event.SoundEffect.PixelX - (state->MapCellX * 24.5), event.SoundEffect.PixelY - (state->MapCellY * 24.5));
@@ -248,8 +246,6 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
         break;
         case (CALLBACK_EVENT_SPEECH):
         {
-            String speech(event.Speech.SpeechName);
-            message = "Speech: " + speech;
             play_sound(event.Speech.SpeechName, true);
         }
         break;
@@ -307,7 +303,9 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
         break;
     }
 
-    emit_signal("event", message);
+    if (message.length()) {
+        emit_signal("event", message);
+    }
 }
 
 bool GDNativeAlert::cnc_start_instance(int scenario_index, int build_level, String faction) {
