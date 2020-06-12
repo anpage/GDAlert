@@ -1,5 +1,7 @@
 extends TextureRect
 
+onready var ShapeTexture = preload("res://bin/ShapeTexture.gdns")
+
 var page_width = 0
 var page_height = 0
 var game_image = Image.new()
@@ -58,6 +60,15 @@ func _ready():
 	score_sample.loop_end = int(score_sample.data.size() / (score_sample.format + 1.0))
 	score_player.set_stream(score_sample)
 	score_player.play()
+
+	var test_rect: TextureRect = get_node("/root/main/CanvasLayer/DebugRect")
+	var test = ShapeTexture.new()
+	test.load_from_mix("MOUSE.SHP")
+	test_rect.texture = test
+
+	var cursor: ImageTexture = test.get_frame_texture(0)
+	Input.set_custom_mouse_cursor(cursor)
+
 
 func _process(delta):
 	time_since_game_tick += delta

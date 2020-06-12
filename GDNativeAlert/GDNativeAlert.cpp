@@ -90,6 +90,9 @@ void GDNativeAlert::_init() {
     GameMixFile* scores_mix = new GameMixFile("SCORES.MIX", &fastKey);
     GameMixFile::Cache("SCORES.MIX");
 
+    GameMixFile* hires_mix = new GameMixFile("HIRES.MIX", &fastKey);
+    GameMixFile::Cache("HIRES.MIX");
+
     INIClass RuleINI;
     GameFileClass ini_file = GameFileClass("RULES.INI");
     RuleINI.Load(ini_file);

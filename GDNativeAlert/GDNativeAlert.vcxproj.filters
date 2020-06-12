@@ -117,6 +117,12 @@
     <ClInclude Include="io\audio.h">
       <Filter>Header Files\io</Filter>
     </ClInclude>
+    <ClInclude Include="ShapeTexture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="io\lcw.h">
+      <Filter>Header Files\io</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GDLibrary.cpp">
@@ -201,6 +207,12 @@
       <Filter>Source Files\io</Filter>
     </ClCompile>
     <ClCompile Include="io\audio.cpp">
+      <Filter>Source Files\io</Filter>
+    </ClCompile>
+    <ClCompile Include="ShapeTexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="io\lcw.cpp">
       <Filter>Source Files\io</Filter>
     </ClCompile>
   </ItemGroup>
