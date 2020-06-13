@@ -33,6 +33,9 @@ void GDNativeAlert::_register_methods() {
     register_method("handle_right_mouse_down", &GDNativeAlert::handle_right_mouse_down);
     register_method("handle_mouse_area", &GDNativeAlert::handle_mouse_area);
     register_method("get_score_sample", &GDNativeAlert::get_score_sample);
+    register_method("handle_mouse_motion", &GDNativeAlert::handle_mouse_motion);
+    register_method("get_cursor_name", &GDNativeAlert::get_cursor_name);
+    register_method("get_game_objects", &GDNativeAlert::get_game_objects);
 
     register_signal<GDNativeAlert>("event", "message", GODOT_VARIANT_TYPE_STRING);
     register_signal<GDNativeAlert>("play_sound", "sample", GODOT_VARIANT_TYPE_OBJECT, "x", GODOT_VARIANT_TYPE_INT, "y", GODOT_VARIANT_TYPE_INT);
@@ -244,7 +247,8 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
         {
             CNCMapDataStruct* state = new CNCMapDataStruct;
             CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)state, sizeof(CNCMapDataStruct));
-            play_sound(event.SoundEffect.SoundEffectName, false, event.SoundEffect.PixelX - (state->MapCellX * 24.5), event.SoundEffect.PixelY - (state->MapCellY * 24.5));
+            play_sound(event.SoundEffect.SoundEffectName, false, event.SoundEffect.PixelX - (state->OriginalMapCellX * 24.5), event.SoundEffect.PixelY - (state->OriginalMapCellY * 24.5));
+            delete[] state;
         }
         break;
         case (CALLBACK_EVENT_SPEECH):
@@ -381,4 +385,159 @@ void GDNativeAlert::handle_right_mouse_down(unsigned int x, unsigned int y) {
 
 void GDNativeAlert::handle_mouse_area(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2) {
     CNC_Handle_Input(INPUT_REQUEST_MOUSE_AREA, NULL, 0, x1, y1, x2, y2);
+}
+
+void GDNativeAlert::handle_mouse_motion(unsigned int x, unsigned int y) {
+    CNC_Handle_Input(INPUT_REQUEST_MOUSE_MOVE, NULL, 0, x, y, NULL, NULL);
+}
+
+String GDNativeAlert::get_cursor_name(real_t x, real_t y) {
+    unsigned int buff_size = sizeof(CNCPlayerInfoStruct) + 33;
+    uint8_t* state = new uint8_t[buff_size];
+    CNC_Get_Game_State(GAME_STATE_PLAYER_INFO, 0, (unsigned char*)state, buff_size);
+    CNCPlayerInfoStruct* player_state = (CNCPlayerInfoStruct*)state;
+
+    unsigned char* layer_state = new unsigned char[0x100000];
+    bool got_layers = CNC_Get_Game_State(GAME_STATE_LAYERS, 0, layer_state, 0x10000);
+    CNCObjectListStruct* layers = (CNCObjectListStruct*)layer_state;
+
+    CNCMapDataStruct* map_state = new CNCMapDataStruct;
+    CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)map_state, sizeof(CNCMapDataStruct));
+
+    CNCObjectStruct* nearest_object = get_nearest_object(layers, (map_state->OriginalMapCellX * 24) + x, (map_state->OriginalMapCellY * 24) + y);
+    if (nearest_object != nullptr)
+    {
+        DllActionTypeEnum action = nearest_object->ActionWithSelected[player_state->House];
+
+        switch (action)
+        {
+        case DAT_ATTACK:
+            delete[] state;
+            delete[] layer_state;
+            delete map_state;
+            return "MOUSE_CAN_ATTACK";
+        case DAT_ATTACK_OUT_OF_RANGE:
+            delete[] state;
+            delete[] layer_state;
+            delete map_state;
+            return "MOUSE_CAN_ATTACK";
+        case DAT_SABOTAGE:
+            delete[] state;
+            delete[] layer_state;
+            delete map_state;
+            return "MOUSE_DEMOLITIONS";
+        case DAT_ENTER:
+            delete[] state;
+            delete[] layer_state;
+            delete map_state;
+            return "MOUSE_ENTER";
+        case DAT_SELECT:
+            delete[] state;
+            delete[] layer_state;
+            delete map_state;
+            return "MOUSE_CAN_SELECT";
+        }
+    }
+
+    if (player_state->SelectedID == -1)
+    {
+        String mouse = "MOUSE_NORMAL";
+
+        if (nearest_object != nullptr)
+        {
+            mouse = "MOUSE_CAN_SELECT";
+        }
+
+        delete[] state;
+        delete[] layer_state;
+        delete map_state;
+        return mouse;
+    }
+
+    unsigned int action_count = player_state->ActionWithSelectedCount;
+
+    DllActionTypeEnum* actions = new DllActionTypeEnum[action_count];
+    actions = player_state->ActionWithSelected;
+
+    int map_cell_x = (x / 24);
+    int map_cell_y = (y / 24);
+
+    DllActionTypeEnum action = actions[map_cell_y * map_state->OriginalMapCellWidth + map_cell_x];
+
+    delete[] state;
+    delete[] layer_state;
+    delete map_state;
+
+    switch (action)
+    {
+    case DAT_MOVE:
+        return "MOUSE_CAN_MOVE";
+    case DAT_NOMOVE:
+        return "MOUSE_NO_MOVE";
+    default:
+        return "MOUSE_NORMAL";
+    }
+}
+
+static float lepton_to_pixel(int map_cell, unsigned short in) {
+    int map_lepton = map_cell * 128;
+    in -= map_lepton;
+    return ((float)in / 128.0) * 24.0;
+}
+
+Array GDNativeAlert::get_game_objects() {
+    unsigned char* layer_state = new unsigned char[0x100000];
+    bool got_layers = CNC_Get_Game_State(GAME_STATE_LAYERS, 0, layer_state, 0x10000);
+    CNCObjectListStruct* layers = (CNCObjectListStruct*)layer_state;
+
+    CNCMapDataStruct* map_state = new CNCMapDataStruct;
+    CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)map_state, sizeof(CNCMapDataStruct));
+
+    Array objects;
+
+    for (int i = 0; i < layers->Count; i++) {
+        CNCObjectStruct* object = layers->Objects + i;
+
+        Dictionary object_dict;
+
+        object_dict["PositionX"] = object->PositionX;
+        object_dict["PositionY"] = object->PositionY;
+
+        object_dict["CenterCoordX"] = lepton_to_pixel(map_state->OriginalMapCellX, object->CenterCoordX / 2);
+        object_dict["CenterCoordY"] = lepton_to_pixel(map_state->OriginalMapCellY, object->CenterCoordY / 2);
+
+        object_dict["DimensionX"] = object->DimensionX;
+        object_dict["DimensionY"] = object->DimensionY;
+
+        objects.push_front(object_dict);
+    }
+
+    delete[] layer_state;
+    delete map_state;
+
+    return objects;
+}
+
+CNCObjectStruct* GDNativeAlert::get_nearest_object(CNCObjectListStruct* layers, real_t x, real_t y) {
+    Vector2 lepton_position = Vector2((x / 24) * 256, (y / 24) * 256);
+
+    CNCObjectStruct* nearest_object = nullptr;
+    for (int i = 0; i < layers->Count; i++) {
+        CNCObjectStruct* object = layers->Objects + i;
+        if (!object->IsSelectable) continue;
+
+        if (String(object->AssetName).findn("BARR") != -1) {
+            int debugshit = 1337;
+        }
+
+        Vector2 object_position = Vector2(object->CenterCoordX, object->CenterCoordY);
+        real_t distance = object_position.distance_to(lepton_position);
+        if (distance < 192.0) nearest_object = object;
+    }
+
+    if (nearest_object == nullptr) {
+        return nullptr;
+    }
+
+    return nearest_object;
 }

@@ -1,0 +1,69 @@
+{
+    "filename": "MOUSE.SHP",
+    "control_data":
+    {
+        "MOUSE_NORMAL":
+        {
+            "start_frame": 0,
+            "frame_count": 1,
+            "frame_rate": 0,
+            "small_frame": 80,
+            "hspot_x": 0,
+            "hspot_y": 0
+        },
+        "MOUSE_NO_MOVE":
+        {
+            "start_frame": 14,
+            "frame_count": 1,
+            "frame_rate": 0,
+            "small_frame": 33,
+            "hspot_x": 14,
+            "hspot_y": 11
+        },
+        "MOUSE_CAN_MOVE":
+        {
+            "start_frame": 10,
+            "frame_count": 4,
+            "frame_rate": 4,
+            "small_frame": 29,
+            "hspot_x": 14,
+            "hspot_y": 11
+        },
+        "MOUSE_CAN_ATTACK":
+        {
+            "start_frame": 21,
+            "frame_count": 8,
+            "frame_rate": 4,
+            "small_frame": 134,
+            "hspot_x": 14,
+            "hspot_y": 11
+        },
+        "MOUSE_CAN_SELECT":
+        {
+            "start_frame": 15,
+            "frame_count": 6,
+            "frame_rate": 4,
+            "small_frame": -1,
+            "hspot_x": 14,
+            "hspot_y": 11
+        },
+        "MOUSE_DEMOLITIONS":
+        {
+            "start_frame": 116,
+            "frame_count": 3,
+            "frame_rate": 4,
+            "small_frame": 121,
+            "hspot_x": 14,
+            "hspot_y": 11
+        },
+        "MOUSE_ENTER":
+        {
+            "start_frame": 113,
+            "frame_count": 3,
+            "frame_rate": 4,
+            "small_frame": 142,
+            "hspot_x": 14,
+            "hspot_y": 11
+        }
+    }
+}

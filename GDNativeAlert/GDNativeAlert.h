@@ -48,6 +48,10 @@ namespace godot {
         void handle_right_mouse_up(unsigned int x, unsigned int y);
         void handle_right_mouse_down(unsigned int x, unsigned int y);
         void handle_mouse_area(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2);
+        void handle_mouse_motion(unsigned int x, unsigned int y);
+        String get_cursor_name(real_t x, real_t y);
+        Array get_game_objects();
+        CNCObjectStruct* get_nearest_object(CNCObjectListStruct* layers, real_t x, real_t y);
     };
 
 }

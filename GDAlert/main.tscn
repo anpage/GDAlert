@@ -1,10 +1,12 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://FramerateLabel.gd" type="Script" id=1]
 [ext_resource path="res://RedAlertGraphics.gd" type="Script" id=2]
 [ext_resource path="res://Rubberband.tscn" type="PackedScene" id=3]
 [ext_resource path="res://RedAlertPlaceholder.png" type="Texture" id=4]
 [ext_resource path="res://depalettize.shader" type="Shader" id=5]
+[ext_resource path="res://RectDrawerThing.gd" type="Script" id=6]
+[ext_resource path="res://CellMask.png" type="Texture" id=7]
 
 [sub_resource type="ShaderMaterial" id=1]
 shader = ExtResource( 5 )
@@ -45,10 +47,31 @@ __meta__ = {
 "_edit_lock_": true
 }
 
+[node name="CellGrid" type="TextureRect" parent="RedAlertGraphics"]
+visible = false
+modulate = Color( 1, 1, 1, 0.215686 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource( 7 )
+expand = true
+stretch_mode = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="DebugThing" type="Control" parent="RedAlertGraphics"]
+visible = false
+margin_right = 40.0
+margin_bottom = 40.0
+mouse_filter = 2
+script = ExtResource( 6 )
+
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="FramerateLabel" type="RichTextLabel" parent="CanvasLayer"]
-visible = false
 margin_left = 10.0
 margin_top = 7.0
 margin_right = 137.0
@@ -67,6 +90,7 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 margin_right = 40.0
 margin_bottom = 40.0
+mouse_filter = 2
 __meta__ = {
 "_edit_use_anchors_": false
 }

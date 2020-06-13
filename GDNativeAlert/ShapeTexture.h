@@ -41,6 +41,7 @@ namespace godot {
         void _init();
 
         bool load_from_mix(String filename);
+        bool load_cursor_texture(String filename, int start_frame, int num_frames);
     };
 
 }

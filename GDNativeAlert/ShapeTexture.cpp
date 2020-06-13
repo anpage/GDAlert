@@ -10,6 +10,7 @@ using namespace godot;
 
 void ShapeTexture::_register_methods() {
     register_method("load_from_mix", &ShapeTexture::load_from_mix);
+    register_method("load_cursor_texture", &ShapeTexture::load_cursor_texture);
 }
 
 ShapeTexture::ShapeTexture() {
@@ -140,7 +141,12 @@ bool ShapeTexture::load_from_mix(String filename) {
     uint8_t* shp_data = (uint8_t*)GameMixFile::Retrieve(name);
     if (name != nullptr) godot::api->godot_free(name);
 
+    if (shp_data == nullptr) return false;
+
     shp_header* block = (shp_header*)shp_data;
+
+    if (block->num_shapes < 1) return false;
+
     for (int i = 0; i < block->num_shapes; i++)
     {
         void* shape_data = extract_shape(shp_data, i);
@@ -151,6 +157,34 @@ bool ShapeTexture::load_from_mix(String filename) {
     }
 
     this->set_frames(block->num_shapes);
+
+    return true;
+}
+
+bool ShapeTexture::load_cursor_texture(String filename, int start_frame, int num_frames) {
+    char* name;
+    name = filename.alloc_c_string();
+
+    uint8_t* shp_data = (uint8_t*)GameMixFile::Retrieve(name);
+    if (name != nullptr) godot::api->godot_free(name);
+
+    if (shp_data == nullptr) return false;
+
+    shp_header* block = (shp_header*)shp_data;
+
+    if (block->num_shapes <= start_frame + num_frames) return false;
+
+    for (int i = start_frame; i < start_frame + num_frames; i++)
+    {
+        void* shape_data = extract_shape(shp_data, i);
+        Image* image = decode_d2_shape(shape_data);
+        ImageTexture* texture = ImageTexture::_new();
+        texture->create_from_image(image, 0);
+        uint64_t frame_texture_index = (uint64_t)i - start_frame;
+        this->set_frame_texture(frame_texture_index, texture);
+    }
+
+    this->set_frames(num_frames);
 
     return true;
 }

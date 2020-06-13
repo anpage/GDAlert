@@ -22,6 +22,7 @@ config/icon="res://icon.png"
 [autoload]
 
 RedAlert="*res://bin/RedAlert.gdns"
+GameCursor="*res://GameCursor.gd"
 
 [display]
 

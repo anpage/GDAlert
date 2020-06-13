@@ -12,6 +12,12 @@ var is_scrolling = false
 var scroll_start = Vector2(0, 0)
 
 var time_since_game_tick = 0.0
+var time_since_cursor_update = 0.0
+var cursor_framerate = 0
+var cursor_frames = 0
+var cursor_frame = 0
+var cursor_hotspot = Vector2(0, 0)
+var cursor_texture = null
 
 func debug_message(msg):
 	print (msg)
@@ -60,21 +66,16 @@ func _ready():
 	score_sample.loop_end = int(score_sample.data.size() / (score_sample.format + 1.0))
 	score_player.set_stream(score_sample)
 	score_player.play()
-
-	var test_rect: TextureRect = get_node("/root/main/CanvasLayer/DebugRect")
-	var test = ShapeTexture.new()
-	test.load_from_mix("MOUSE.SHP")
-	test_rect.texture = test
-
-	var cursor: ImageTexture = test.get_frame_texture(0)
-	Input.set_custom_mouse_cursor(cursor)
-
+	
+	GameCursor.load_cursors()
 
 func _process(delta):
 	time_since_game_tick += delta
 
 	if time_since_game_tick >= 0.03333333333:
 		RedAlert.advance_instance(0)
+		var objects: Array = RedAlert.get_game_objects()
+		$DebugThing.draw_things(objects)
 		time_since_game_tick = 0
 
 	var palette = RedAlert.get_palette()
@@ -122,6 +123,12 @@ func _gui_input(event):
 			else:
 				is_scrolling = false
 	if event is InputEventMouseMotion:
+		var mouse_pos: Vector2 = event.position
+		RedAlert.handle_mouse_motion(mouse_pos.x, mouse_pos.y)
+
+		var cursor_name = RedAlert.get_cursor_name(mouse_pos.x, mouse_pos.y)
+		GameCursor.set_cursor(cursor_name)
+
 		if is_scrolling:
 			var x = $GameCamera.position.x + (scroll_start.x - event.position.x)
 			var y = $GameCamera.position.y + (scroll_start.y - event.position.y)
