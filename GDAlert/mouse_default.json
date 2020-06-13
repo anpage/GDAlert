@@ -38,6 +38,15 @@
             "hspot_x": 14,
             "hspot_y": 11
         },
+        "MOUSE_STAY_ATTACK":
+        {
+            "start_frame": 195,
+            "frame_count": 8,
+            "frame_rate": 4,
+            "small_frame": 203,
+            "hspot_x": 14,
+            "hspot_y": 11
+        },
         "MOUSE_CAN_SELECT":
         {
             "start_frame": 15,

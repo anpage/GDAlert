@@ -420,7 +420,7 @@ String GDNativeAlert::get_cursor_name(real_t x, real_t y) {
             delete[] state;
             delete[] layer_state;
             delete map_state;
-            return "MOUSE_CAN_ATTACK";
+            return "MOUSE_STAY_ATTACK";
         case DAT_SABOTAGE:
             delete[] state;
             delete[] layer_state;
@@ -525,10 +525,6 @@ CNCObjectStruct* GDNativeAlert::get_nearest_object(CNCObjectListStruct* layers, 
     for (int i = 0; i < layers->Count; i++) {
         CNCObjectStruct* object = layers->Objects + i;
         if (!object->IsSelectable) continue;
-
-        if (String(object->AssetName).findn("BARR") != -1) {
-            int debugshit = 1337;
-        }
 
         Vector2 object_position = Vector2(object->CenterCoordX, object->CenterCoordY);
         real_t distance = object_position.distance_to(lepton_position);
