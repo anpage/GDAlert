@@ -11,7 +11,7 @@
 namespace godot {
     struct shp_header {
         uint16_t num_shapes;
-        uint32_t offsets[];
+        uint32_t offsets[1];
     };
 
     struct d2_shape_header {

@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\external\CnC_Remastered_Collection\REDALERT\DLLInterface.h" />
     <ClInclude Include="CNCDll.h" />
     <ClInclude Include="GDNativeAlert.h" />
     <ClInclude Include="io\adpcm.h" />
@@ -47,11 +48,6 @@
     <ClInclude Include="ShapeTexture.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\REDALERT\RedAlert.vcxproj">
-      <Project>{da948ed9-ef67-4813-94b7-995be956786e}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="GDNativeAlert.cpp" />
     <ClCompile Include="GDLibrary.cpp" />
     <ClCompile Include="io\adpcm.cpp" />
@@ -82,6 +78,11 @@
     <ClCompile Include="io\shastraw.cpp" />
     <ClCompile Include="io\straw.cpp" />
     <ClCompile Include="ShapeTexture.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\external\CnC_Remastered_Collection\REDALERT\RedAlert.vcxproj">
+      <Project>{da948ed9-ef67-4813-94b7-995be956786e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -118,15 +119,15 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)io;$(ProjectDir)..\REDALERT\include;$(ProjectDir)..\godot-cpp\godot_headers;$(ProjectDir)..\godot-cpp\include;$(ProjectDir)..\godot-cpp\include\core;$(ProjectDir)..\godot-cpp\include\gen;$(ProjectDir)..\BaseConfig\src;$(ProjectDir)..\BaseConfig\build\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)io;$(SolutionDir)external\CnC_Remastered_Collection\REDALERT\include;$(SolutionDir)external\godot-cpp\godot_headers;$(SolutionDir)external\godot-cpp\include;$(SolutionDir)external\godot-cpp\include\core;$(SolutionDir)external\godot-cpp\include\gen;$(SolutionDir)external\Chronoshift\libs\BaseConfig\src;$(SolutionDir)external\Chronoshift\libs\BaseConfig\build\src;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)GDAlert\bin\</OutDir>
-    <LibraryPath>$(SolutionDir)BaseConfig\build\Debug;$(SolutionDir)godot-cpp\bin;$(SolutionDir)GDAlert\bin\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)external\Chronoshift\libs\BaseConfig\build\Debug;$(SolutionDir)external\godot-cpp\bin;$(SolutionDir)$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)io;$(ProjectDir)..\REDALERT\include;$(ProjectDir)..\godot-cpp\godot_headers;$(ProjectDir)..\godot-cpp\include;$(ProjectDir)..\godot-cpp\include\core;$(ProjectDir)..\godot-cpp\include\gen;$(ProjectDir)..\BaseConfig\src;$(ProjectDir)..\BaseConfig\build\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)io;$(SolutionDir)external\CnC_Remastered_Collection\REDALERT\include;$(SolutionDir)external\godot-cpp\godot_headers;$(SolutionDir)external\godot-cpp\include;$(SolutionDir)external\godot-cpp\include\core;$(SolutionDir)external\godot-cpp\include\gen;$(SolutionDir)external\Chronoshift\libs\BaseConfig\src;$(SolutionDir)external\Chronoshift\libs\BaseConfig\build\src;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)GDAlert\bin\</OutDir>
-    <LibraryPath>$(SolutionDir)BaseConfig\build\Release;$(SolutionDir)godot-cpp\bin;$(SolutionDir)GDAlert\bin\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)external\Chronoshift\libs\BaseConfig\build\Release;$(SolutionDir)external\godot-cpp\bin;$(SolutionDir)$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -135,10 +136,11 @@
       <PreprocessorDefinitions>WINDOWS_IGNORE_PACKING_MISMATCH;NOMINMAX;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;GDNATIVEALERT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <DisableSpecificWarnings>4800;4244;4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4800;4244;4996;4596</DisableSpecificWarnings>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <SupportJustMyCode>false</SupportJustMyCode>
       <StructMemberAlignment>1Byte</StructMemberAlignment>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,6 +148,9 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>base.lib;RedAlert.lib;libgodot-cpp.windows.debug.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)$(Configuration)\RedAlert.*" "$(TargetDir)" /Y /E /D</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -156,8 +161,9 @@
       <PreprocessorDefinitions>WINDOWS_IGNORE_PACKING_MISMATCH;NOMINMAX;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;GDNATIVEALERT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <DisableSpecificWarnings>4800;4244;4996</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4800;4244;4996;4596</DisableSpecificWarnings>
       <StructMemberAlignment>1Byte</StructMemberAlignment>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -167,6 +173,9 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>base.lib;RedAlert.lib;libgodot-cpp.windows.release.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>xcopy "$(SolutionDir)$(Configuration)\RedAlert.*" "$(TargetDir)" /Y /E /D</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

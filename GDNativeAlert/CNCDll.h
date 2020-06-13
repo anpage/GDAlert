@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 
-#include "DLLInterface.h"
+#include <DLLInterface.h>
 
 typedef void(__cdecl* CNC_Event_Callback_Type)(const EventCallbackStruct& event);
 typedef unsigned __int64 uint64;

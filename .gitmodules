@@ -1,7 +1,12 @@
-[submodule "godot-cpp"]
-	path = godot-cpp
-	url = https://github.com/GodotNativeTools/godot-cpp
+[submodule "external/godot-cpp"]
+	path = external/godot-cpp
+	url = https://github.com/godotengine/godot-cpp.git
 	branch = 3.2
-[submodule "BaseConfig"]
-	path = BaseConfig
-	url = https://github.com/TheAssemblyArmada/BaseConfig.git
+[submodule "external/Chronoshift"]
+	path = external/Chronoshift
+	url = https://github.com/TheAssemblyArmada/Chronoshift.git
+	branch = develop
+[submodule "external/CnC_Remastered_Collection"]
+	path = external/CnC_Remastered_Collection
+	url = https://github.com/anpage/CnC_Remastered_Collection.git
+	branch = baseline

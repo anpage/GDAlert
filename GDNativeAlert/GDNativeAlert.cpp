@@ -207,6 +207,8 @@ AudioStreamSample* GDNativeAlert::decode_aud(String name) {
 
         return sample;
     }
+
+    return nullptr;
 }
 
 AudioStreamSample* GDNativeAlert::get_score_sample(String name) {
@@ -248,7 +250,7 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
             CNCMapDataStruct* state = new CNCMapDataStruct;
             CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)state, sizeof(CNCMapDataStruct));
             play_sound(event.SoundEffect.SoundEffectName, false, event.SoundEffect.PixelX - (state->OriginalMapCellX * 24.5), event.SoundEffect.PixelY - (state->OriginalMapCellY * 24.5));
-            delete[] state;
+            delete state;
         }
         break;
         case (CALLBACK_EVENT_SPEECH):

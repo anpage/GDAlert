@@ -123,6 +123,9 @@
     <ClInclude Include="io\lcw.h">
       <Filter>Header Files\io</Filter>
     </ClInclude>
+    <ClInclude Include="..\external\CnC_Remastered_Collection\REDALERT\DLLInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GDLibrary.cpp">
