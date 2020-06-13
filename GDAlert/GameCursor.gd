@@ -45,7 +45,7 @@ func set_cursor(name):
 		var control_data: Dictionary = mouse_control["control_data"]
 		var data: Dictionary = control_data[name]
 		frames = data["frame_count"]
-		framerate = data["frame_rate"]
+		framerate = data["frame_rate"] * 2
 		hotspot = Vector2(data["hspot_x"] * 2, data["hspot_y"] * 2)
 		texture = textures[name]
 		frame = 1
