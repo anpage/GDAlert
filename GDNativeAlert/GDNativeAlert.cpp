@@ -482,14 +482,14 @@ String GDNativeAlert::get_cursor_name(real_t x, real_t y) {
 }
 
 static float lepton_to_pixel(int map_cell, unsigned short in) {
-    int map_lepton = map_cell * 128;
+    int map_lepton = map_cell * 256;
     in -= map_lepton;
-    return ((float)in / 128.0) * 24.0;
+    return ((float)in / 256.0) * 24.0;
 }
 
 Array GDNativeAlert::get_game_objects() {
-    unsigned char* layer_state = new unsigned char[0x100000];
-    bool got_layers = CNC_Get_Game_State(GAME_STATE_LAYERS, 0, layer_state, 0x10000);
+    unsigned char* layer_state = new unsigned char[0x200000];
+    bool got_layers = CNC_Get_Game_State(GAME_STATE_LAYERS, 0, layer_state, 0x20000);
     CNCObjectListStruct* layers = (CNCObjectListStruct*)layer_state;
 
     CNCMapDataStruct* map_state = new CNCMapDataStruct;
@@ -505,11 +505,30 @@ Array GDNativeAlert::get_game_objects() {
         object_dict["PositionX"] = object->PositionX;
         object_dict["PositionY"] = object->PositionY;
 
-        object_dict["CenterCoordX"] = lepton_to_pixel(map_state->OriginalMapCellX, object->CenterCoordX / 2);
-        object_dict["CenterCoordY"] = lepton_to_pixel(map_state->OriginalMapCellY, object->CenterCoordY / 2);
+        object_dict["CenterCoordX"] = lepton_to_pixel(map_state->OriginalMapCellX, object->CenterCoordX);
+        object_dict["CenterCoordY"] = lepton_to_pixel(map_state->OriginalMapCellY, object->CenterCoordY);
 
         object_dict["DimensionX"] = object->DimensionX;
         object_dict["DimensionY"] = object->DimensionY;
+
+        real_t top_left_x = object->CenterCoordX - (((object->DimensionX / 24) * 256) / 2);
+        real_t top_left_y = object->CenterCoordY - (((object->DimensionY / 24) * 256) / 2);
+
+        int top_left_cell_x = top_left_x / 256;
+        int top_left_cell_y = top_left_y / 256;
+
+        Array occupy_list;
+
+        for (int i = 0; i < object->OccupyListLength; i++) {
+            short cell_offset = object->OccupyList[i];
+            int cell_offset_x = cell_offset % 128;
+            int cell_offset_y = cell_offset / 128;
+            int cell_new_x = (top_left_cell_x + cell_offset_x) - map_state->OriginalMapCellX;
+            int cell_new_y = (top_left_cell_y + cell_offset_y) - map_state->OriginalMapCellY;
+            occupy_list.push_front(Vector2(cell_new_x * 24, cell_new_y * 24));
+        }
+
+        object_dict["OccupyList"] = occupy_list;
 
         objects.push_front(object_dict);
     }
@@ -520,17 +539,76 @@ Array GDNativeAlert::get_game_objects() {
     return objects;
 }
 
+int GDNativeAlert::distance(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2)
+{
+    int	diff1, diff2;
+
+    diff1 = y1 - y2;
+    if (diff1 < 0) diff1 = -diff1;
+    diff2 = x1 - x2;
+    if (diff2 < 0) diff2 = -diff2;
+    if (diff1 > diff2) {
+        return(diff1 + ((unsigned)diff2 / 2));
+    }
+    return(diff2 + ((unsigned)diff1 / 2));
+}
+
 CNCObjectStruct* GDNativeAlert::get_nearest_object(CNCObjectListStruct* layers, real_t x, real_t y) {
-    Vector2 lepton_position = Vector2((x / 24) * 256, (y / 24) * 256);
+    int lepton_position_x = (x / 24) * 256;
+    int lepton_position_y = (y / 24) * 256;
 
     CNCObjectStruct* nearest_object = nullptr;
+    int nearest_object_distance;
     for (int i = 0; i < layers->Count; i++) {
         CNCObjectStruct* object = layers->Objects + i;
         if (!object->IsSelectable) continue;
 
-        Vector2 object_position = Vector2(object->CenterCoordX, object->CenterCoordY);
-        real_t distance = object_position.distance_to(lepton_position);
-        if (distance < 192.0) nearest_object = object;
+        if (object->Type == BUILDING || object->Type == BUILDING_TYPE) {
+            int top_left_x = object->CenterCoordX - (((object->DimensionX / 24) * 256) / 2);
+            int top_left_y = object->CenterCoordY - (((object->DimensionY / 24) * 256) / 2);
+
+            int top_left_cell_x = top_left_x / 256;
+            int top_left_cell_y = top_left_y / 256;
+
+            for (int i = 0; i < object->OccupyListLength; i++) {
+                short cell_offset = object->OccupyList[i];
+                int cell_offset_x = cell_offset % 128;
+                int cell_offset_y = cell_offset / 128;
+                int cell_new_x = (top_left_cell_x + cell_offset_x);
+                int cell_new_y = (top_left_cell_y + cell_offset_y);
+
+                int cell_x = (cell_new_x * 256) + 128;
+                int cell_y = (cell_new_y * 256) + 128;
+                int distance = GDNativeAlert::distance(cell_x, cell_y, lepton_position_x, lepton_position_y);
+                if (distance < 192) {
+                    if (nearest_object != nullptr) {
+                        if (distance < nearest_object_distance) {
+                            nearest_object = object;
+                            nearest_object_distance = distance;
+                        }
+                    }
+                    else {
+                        nearest_object = object;
+                        nearest_object_distance = distance;
+                    }
+                }
+            }
+        }
+        else {
+            int distance = GDNativeAlert::distance(object->CenterCoordX, object->CenterCoordY, lepton_position_x, lepton_position_y);
+            if (distance < 192) {
+                if (nearest_object != nullptr) {
+                    if (distance < nearest_object_distance) {
+                        nearest_object = object;
+                        nearest_object_distance = distance;
+                    }
+                }
+                else {
+                    nearest_object = object;
+                    nearest_object_distance = distance;
+                }
+            }
+        }
     }
 
     if (nearest_object == nullptr) {

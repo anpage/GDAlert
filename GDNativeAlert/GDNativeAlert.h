@@ -21,6 +21,8 @@ namespace godot {
 
         static AudioStreamSample* decode_aud(String name);
 
+        static int distance(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2);
+
         PoolByteArray game_buffer_pba;
         PoolByteArray game_palette_pba;
         PoolByteArray speech_buffer;
