@@ -14,69 +14,11 @@
     <ClInclude Include="..\external\CnC_Remastered_Collection\REDALERT\DLLInterface.h" />
     <ClInclude Include="CNCDll.h" />
     <ClInclude Include="GDNativeAlert.h" />
-    <ClInclude Include="io\adpcm.h" />
-    <ClInclude Include="io\audio.h" />
-    <ClInclude Include="io\basefile.h" />
-    <ClInclude Include="io\bfiofile.h" />
-    <ClInclude Include="io\blowfish.h" />
-    <ClInclude Include="io\blowstraw.h" />
-    <ClInclude Include="io\buffer.h" />
-    <ClInclude Include="io\cdfile.h" />
-    <ClInclude Include="io\crc.h" />
-    <ClInclude Include="io\filepipe.h" />
-    <ClInclude Include="io\filestraw.h" />
-    <ClInclude Include="io\fixed.h" />
-    <ClInclude Include="io\gamefile.h" />
-    <ClInclude Include="io\index.h" />
-    <ClInclude Include="io\ini.h" />
-    <ClInclude Include="io\int.h" />
-    <ClInclude Include="io\lcw.h" />
-    <ClInclude Include="io\listnode.h" />
-    <ClInclude Include="io\memrev.h" />
-    <ClInclude Include="io\mixfile.h" />
-    <ClInclude Include="io\mpmath.h" />
-    <ClInclude Include="io\pipe.h" />
-    <ClInclude Include="io\pk.h" />
-    <ClInclude Include="io\pkstraw.h" />
-    <ClInclude Include="io\random.h" />
-    <ClInclude Include="io\rawfile.h" />
-    <ClInclude Include="io\readline.h" />
-    <ClInclude Include="io\rndstraw.h" />
-    <ClInclude Include="io\sha.h" />
-    <ClInclude Include="io\shastraw.h" />
-    <ClInclude Include="io\straw.h" />
     <ClInclude Include="ShapeTexture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GDNativeAlert.cpp" />
     <ClCompile Include="GDLibrary.cpp" />
-    <ClCompile Include="io\adpcm.cpp" />
-    <ClCompile Include="io\audio.cpp" />
-    <ClCompile Include="io\basefile.cpp" />
-    <ClCompile Include="io\bfiofile.cpp" />
-    <ClCompile Include="io\blowfish.cpp" />
-    <ClCompile Include="io\blowstraw.cpp" />
-    <ClCompile Include="io\buffer.cpp" />
-    <ClCompile Include="io\cdfile.cpp" />
-    <ClCompile Include="io\crc.cpp" />
-    <ClCompile Include="io\filepipe.cpp" />
-    <ClCompile Include="io\filestraw.cpp" />
-    <ClCompile Include="io\fixed.cpp" />
-    <ClCompile Include="io\gamefile.cpp" />
-    <ClCompile Include="io\ini.cpp" />
-    <ClCompile Include="io\lcw.cpp" />
-    <ClCompile Include="io\mixfile.cpp" />
-    <ClCompile Include="io\mpmath.cpp" />
-    <ClCompile Include="io\pipe.cpp" />
-    <ClCompile Include="io\pk.cpp" />
-    <ClCompile Include="io\pkstraw.cpp" />
-    <ClCompile Include="io\random.cpp" />
-    <ClCompile Include="io\rawfile.cpp" />
-    <ClCompile Include="io\readline.cpp" />
-    <ClCompile Include="io\rndstraw.cpp" />
-    <ClCompile Include="io\sha.cpp" />
-    <ClCompile Include="io\shastraw.cpp" />
-    <ClCompile Include="io\straw.cpp" />
     <ClCompile Include="ShapeTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -119,21 +61,21 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)io;$(SolutionDir)external\CnC_Remastered_Collection\REDALERT\include;$(SolutionDir)external\godot-cpp\godot_headers;$(SolutionDir)external\godot-cpp\include;$(SolutionDir)external\godot-cpp\include\core;$(SolutionDir)external\godot-cpp\include\gen;$(SolutionDir)external\Chronoshift\libs\BaseConfig\src;$(SolutionDir)external\Chronoshift\libs\BaseConfig\build\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)io;$(SolutionDir)external\CnC_Remastered_Collection\REDALERT\include;$(SolutionDir)external\godot-cpp\godot_headers;$(SolutionDir)external\godot-cpp\include;$(SolutionDir)external\godot-cpp\include\core;$(SolutionDir)external\godot-cpp\include\gen;$(SolutionDir)external\Chronoshift\libs\baseconfig\src;$(SolutionDir)external\Chronoshift\build\libs\baseconfig\src;$(SolutionDir)external\Chronoshift\libs\captnlog\src;$(SolutionDir)external\Chronoshift\src\game\memory;$(SolutionDir)external\Chronoshift\src\game\platform;$(SolutionDir)external\Chronoshift\src\game\gfx;$(SolutionDir)external\Chronoshift\src\game\engine;$(SolutionDir)external\Chronoshift\src\game\audio;$(SolutionDir)external\Chronoshift\src\game\common;$(SolutionDir)external\Chronoshift\src\game\crypto;$(SolutionDir)external\Chronoshift\src\game\io;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)GDAlert\bin\</OutDir>
-    <LibraryPath>$(SolutionDir)external\Chronoshift\libs\BaseConfig\build\Debug;$(SolutionDir)external\godot-cpp\bin;$(SolutionDir)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)external\Chronoshift\build\Debug;$(SolutionDir)external\godot-cpp\bin;$(SolutionDir)$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)io;$(SolutionDir)external\CnC_Remastered_Collection\REDALERT\include;$(SolutionDir)external\godot-cpp\godot_headers;$(SolutionDir)external\godot-cpp\include;$(SolutionDir)external\godot-cpp\include\core;$(SolutionDir)external\godot-cpp\include\gen;$(SolutionDir)external\Chronoshift\libs\BaseConfig\src;$(SolutionDir)external\Chronoshift\libs\BaseConfig\build\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)io;$(SolutionDir)external\CnC_Remastered_Collection\REDALERT\include;$(SolutionDir)external\godot-cpp\godot_headers;$(SolutionDir)external\godot-cpp\include;$(SolutionDir)external\godot-cpp\include\core;$(SolutionDir)external\godot-cpp\include\gen;$(SolutionDir)external\Chronoshift\libs\baseconfig\src;$(SolutionDir)external\Chronoshift\build\libs\baseconfig\src;$(SolutionDir)external\Chronoshift\libs\captnlog\src;$(SolutionDir)external\Chronoshift\src\game\memory;$(SolutionDir)external\Chronoshift\src\game\platform;$(SolutionDir)external\Chronoshift\src\game\gfx;$(SolutionDir)external\Chronoshift\src\game\engine;$(SolutionDir)external\Chronoshift\src\game\audio;$(SolutionDir)external\Chronoshift\src\game\common;$(SolutionDir)external\Chronoshift\src\game\crypto;$(SolutionDir)external\Chronoshift\src\game\io;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)GDAlert\bin\</OutDir>
-    <LibraryPath>$(SolutionDir)external\Chronoshift\libs\BaseConfig\build\Release;$(SolutionDir)external\godot-cpp\bin;$(SolutionDir)$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)external\Chronoshift\build\Release;$(SolutionDir)external\godot-cpp\bin;$(SolutionDir)$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WINDOWS_IGNORE_PACKING_MISMATCH;NOMINMAX;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;GDNATIVEALERT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LOGGING_LEVEL=0;ASSERT_LEVEL=0;GDALERT;WINDOWS_IGNORE_PACKING_MISMATCH;NOMINMAX;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;GDNATIVEALERT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <DisableSpecificWarnings>4800;4244;4996;4596</DisableSpecificWarnings>
@@ -146,7 +88,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>base.lib;RedAlert.lib;libgodot-cpp.windows.debug.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;captnlog.lib;chronoshift.lib;RedAlert.lib;libgodot-cpp.windows.debug.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>xcopy "$(SolutionDir)$(Configuration)\RedAlert.*" "$(TargetDir)" /Y /E /D</Command>
@@ -158,7 +100,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WINDOWS_IGNORE_PACKING_MISMATCH;NOMINMAX;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;GDNATIVEALERT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LOGGING_LEVEL=0;ASSERT_LEVEL=0;GDALERT;WINDOWS_IGNORE_PACKING_MISMATCH;NOMINMAX;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;GDNATIVEALERT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <DisableSpecificWarnings>4800;4244;4996;4596</DisableSpecificWarnings>
@@ -171,7 +113,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>base.lib;RedAlert.lib;libgodot-cpp.windows.release.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>base.lib;captnlog.lib;chronoshift.lib;RedAlert.lib;libgodot-cpp.windows.release.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>xcopy "$(SolutionDir)$(Configuration)\RedAlert.*" "$(TargetDir)" /Y /E /D</Command>

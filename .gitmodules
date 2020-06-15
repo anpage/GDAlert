@@ -4,8 +4,8 @@
 	branch = 3.2
 [submodule "external/Chronoshift"]
 	path = external/Chronoshift
-	url = https://github.com/TheAssemblyArmada/Chronoshift.git
-	branch = develop
+	url = https://github.com/anpage/Chronoshift.git
+	branch = gdalert
 [submodule "external/CnC_Remastered_Collection"]
 	path = external/CnC_Remastered_Collection
 	url = https://github.com/anpage/CnC_Remastered_Collection.git
