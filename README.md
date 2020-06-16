@@ -27,6 +27,8 @@ Unfortunately, due to the poor portability of the original games' code, this pro
   * Windows 10 SDK (Windows 8 SDK might work)
 * [Godot 3.2.1 for Win32](https://godotengine.org/download/windows) (NOT Win64)
 
+To run the game, you need at least `HIRES1.MIX`, `MAIN.MIX`, and `REDALERT.MIX` in the `GDAlert/RedAlert` folder. You can obtain these from the original Red Alert game CDs, from the [freeware release](https://cnc-comm.com/red-alert/downloads/the-game/allies-disc), or from the [Origin release](https://www.origin.com/usa/en-us/store/command-and-conquer/command-and-conquer-the-ultimate-collection) as part of The Ultimate Collection.
+
 #### Steps
 There is currently no CMake support in GDAlert itself, so for now there's just a simple batch file that runs the commands to build the project's dependencies.
 
