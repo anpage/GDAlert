@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/CellMask.png-f78dcf2db80b72301e4c6e8913112834.stex"
+path="res://.import/cell_mask.png-8ab25cd54b40a843a4396123d59a82f6.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://CellMask.png"
-dest_files=[ "res://.import/CellMask.png-f78dcf2db80b72301e4c6e8913112834.stex" ]
+source_file="res://debug_assets/cell_mask.png"
+dest_files=[ "res://.import/cell_mask.png-8ab25cd54b40a843a4396123d59a82f6.stex" ]
 
 [params]
 

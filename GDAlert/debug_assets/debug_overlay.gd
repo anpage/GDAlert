@@ -1,6 +1,6 @@
 extends Control
 
-onready var Circle = preload("res://Circle.tscn")
+onready var Circle = preload("res://debug_assets/circle.tscn")
 
 func draw_things(things):
 	for n in get_children():

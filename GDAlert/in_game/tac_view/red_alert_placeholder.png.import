@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/RedAlertPlaceholder.png-a383ab65404930e36e663f90249cd7b9.stex"
+path="res://.import/red_alert_placeholder.png-e6251387db1ee394c13353101bcbc7f5.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://RedAlertPlaceholder.png"
-dest_files=[ "res://.import/RedAlertPlaceholder.png-a383ab65404930e36e663f90249cd7b9.stex" ]
+source_file="res://in_game/tac_view/red_alert_placeholder.png"
+dest_files=[ "res://.import/red_alert_placeholder.png-e6251387db1ee394c13353101bcbc7f5.stex" ]
 
 [params]
 

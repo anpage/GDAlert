@@ -16,14 +16,14 @@ _global_script_class_icons={
 [application]
 
 config/name="GDAlert"
-run/main_scene="res://main.tscn"
+run/main_scene="res://in_game/in_game.tscn"
 boot_splash/image="res://splash.png"
 config/icon="res://icon.png"
 
 [autoload]
 
-RedAlert="*res://bin/RedAlert.gdns"
-GameCursor="*res://GameCursor.gd"
+RedAlert="*res://bin/red_alert.gdns"
+GameCursor="*res://game_cursor.gd"
 
 [display]
 

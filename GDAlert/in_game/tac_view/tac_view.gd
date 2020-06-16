@@ -1,6 +1,6 @@
 extends TextureRect
 
-onready var ShapeTexture = preload("res://bin/ShapeTexture.gdns")
+onready var ShapeTexture = preload("res://bin/shape_texture.gdns")
 
 var page_width = 0
 var page_height = 0
@@ -33,7 +33,7 @@ func play_speech(sample: AudioStreamSample):
 
 func play_sound(sample: AudioStreamSample, x: int, y: int):
 	var player: AudioStreamPlayer2D = AudioStreamPlayer2D.new()
-	var main: Control = get_node("/root/main")
+	var main: Control = get_node("/root/Main")
 	main.add_child(player)
 	player.set_stream(sample)
 	player.position = Vector2(x, y)
@@ -60,7 +60,7 @@ func _ready():
 	game_palette_texture.flags = 0
 	material.set_shader_param("palette_tex", game_palette_texture)
 
-	var score_player: AudioStreamPlayer = get_node("/root/main/ScorePlayer")
+	var score_player: AudioStreamPlayer = get_node("/root/Main/ScorePlayer")
 	var score_sample: AudioStreamSample = RedAlert.get_score_sample("BIGF226M.AUD")
 	score_sample.loop_mode = AudioStreamSample.LOOP_FORWARD
 	score_sample.loop_end = int(score_sample.data.size() / (score_sample.format + 1.0))
@@ -75,7 +75,7 @@ func _process(delta):
 	if time_since_game_tick >= 0.03333333333:
 		RedAlert.advance_instance(0)
 		var objects: Array = RedAlert.get_game_objects()
-		$DebugThing.draw_things(objects)
+		$DebugOverlay.draw_things(objects)
 		time_since_game_tick = 0
 
 	var palette = RedAlert.get_palette()
@@ -109,12 +109,12 @@ func _gui_input(event):
 			else:
 				RedAlert.handle_right_mouse_up(x, y)
 		if event.button_index == BUTTON_WHEEL_UP and event.pressed:
-			$GameCamera.zoom /= 2
-			$GameCamera.position += $GameCamera.get_viewport_rect().size * $GameCamera.zoom * 0.5
+			$Camera.zoom /= 2
+			$Camera.position += $Camera.get_viewport_rect().size * $Camera.zoom * 0.5
 			clamp_camera_position()
 		if event.button_index == BUTTON_WHEEL_DOWN and event.pressed:
-			$GameCamera.position -= $GameCamera.get_viewport_rect().size * $GameCamera.zoom * 0.5
-			$GameCamera.zoom *= 2
+			$Camera.position -= $Camera.get_viewport_rect().size * $Camera.zoom * 0.5
+			$Camera.zoom *= 2
 			clamp_camera_position()
 		if event.button_index == BUTTON_MIDDLE:
 			if event.pressed:
@@ -130,20 +130,20 @@ func _gui_input(event):
 		GameCursor.set_cursor(cursor_name)
 
 		if is_scrolling:
-			var x = $GameCamera.position.x + (scroll_start.x - event.position.x)
-			var y = $GameCamera.position.y + (scroll_start.y - event.position.y)
-			$GameCamera.position.x = x
-			$GameCamera.position.y = y
+			var x = $Camera.position.x + (scroll_start.x - event.position.x)
+			var y = $Camera.position.y + (scroll_start.y - event.position.y)
+			$Camera.position.x = x
+			$Camera.position.y = y
 			clamp_camera_position()
 
 
 func clamp_camera_position():
-	var max_x = page_width - ($GameCamera.get_viewport_rect().size.x * $GameCamera.zoom.x)
-	var new_x = clamp($GameCamera.position.x, 0, max(0, max_x))
-	var max_y = page_height - ($GameCamera.get_viewport_rect().size.y * $GameCamera.zoom.y)
-	var new_y = clamp($GameCamera.position.y, 0, max(0, max_y))
-	$GameCamera.position.x = new_x
-	$GameCamera.position.y = new_y
+	var max_x = page_width - ($Camera.get_viewport_rect().size.x * $Camera.zoom.x)
+	var new_x = clamp($Camera.position.x, 0, max(0, max_x))
+	var max_y = page_height - ($Camera.get_viewport_rect().size.y * $Camera.zoom.y)
+	var new_y = clamp($Camera.position.y, 0, max(0, max_y))
+	$Camera.position.x = new_x
+	$Camera.position.y = new_y
 
 func _on_select_rect_finish(p1, p2):
 	RedAlert.handle_mouse_area(p1.x, p1.y, p2.x, p2.y)

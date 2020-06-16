@@ -1,6 +1,6 @@
 extends Node
 
-onready var ShapeTexture = preload("res://bin/ShapeTexture.gdns")
+onready var ShapeTexture = preload("res://bin/shape_texture.gdns")
 
 var mouse_control: Dictionary
 var textures: Dictionary = {}
