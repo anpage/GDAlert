@@ -5,6 +5,11 @@ FodyWeavers.xsd
 RedAlert/
 *.PAL
 
+# DLL build artifacts
+*.lib
+*.dll
+*.exp
+
 # Created by https://www.toptal.com/developers/gitignore/api/macos,linux,windows,godot,visualstudio,visualstudiocode,executable,backup
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,linux,windows,godot,visualstudio,visualstudiocode,executable,backup
 
