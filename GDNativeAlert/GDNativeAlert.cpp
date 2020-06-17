@@ -17,6 +17,7 @@
 #include "ini.h"
 #include "audio.h"
 #include "adpcm.h"
+#include "pk.h"
 
 using namespace godot;
 
