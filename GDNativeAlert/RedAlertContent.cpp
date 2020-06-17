@@ -34,7 +34,7 @@ void RedAlertContent::_init() {
     fast_key.Decode_Exponent(buffer);
     fast_key.Decode_Modulus(FAST_KEY_MOD);
 
-    GameMixFile* redalert_mix = new GameMixFile("RedAlert\\REDALERT.MIX", &fast_key);
+    GameMixFile redalert_mix("RedAlert\\REDALERT.MIX", &fast_key);
     GameMixFile* local_mix = new GameMixFile("LOCAL.MIX", &fast_key);
     GameMixFile::Cache("LOCAL.MIX");
     GameMixFile* speech_mix = new GameMixFile("SPEECH.MIX", &fast_key);
@@ -42,7 +42,7 @@ void RedAlertContent::_init() {
     GameMixFile* hires_mix = new GameMixFile("HIRES.MIX", &fast_key);
     GameMixFile::Cache("HIRES.MIX");
 
-    GameMixFile* main_mix = new GameMixFile("RedAlert\\MAIN.MIX", &fast_key);
+    GameMixFile main_mix("RedAlert\\MAIN.MIX", &fast_key);
     GameMixFile* sounds_mix = new GameMixFile("SOUNDS.MIX", &fast_key);
     GameMixFile::Cache("SOUNDS.MIX");
     GameMixFile* allies_mix = new GameMixFile("ALLIES.MIX", &fast_key);
