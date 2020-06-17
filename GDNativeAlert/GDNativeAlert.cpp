@@ -11,58 +11,42 @@
 #include <ProjectSettings.hpp>
 #include <ConfigFile.hpp>
 #include <AudioStreamPlayer.hpp>
+#include <Image.hpp>
 
 #include "mixfile.h"
 #include "gamefile.h"
 #include "ini.h"
-#include "audio.h"
-#include "adpcm.h"
-#include "pk.h"
+
 
 using namespace godot;
-
-// From PK.H
-const long GDNativeAlert::FAST_KEY_EXP = 65537L;
-
-// From CONST.CPP, base64 encoded
-// "AihRvNoIbTn85FZRYNZRcT+i6KpU+maCsEqr3Q5q+LDB5tH7Tz2qQ38V"
-const char GDNativeAlert::FAST_KEY_MOD[42] = { '\x02', '\x28', '\x51', '\xbc', '\xda', '\x08', '\x6d',
-                                               '\x39', '\xfc', '\xe4', '\x56', '\x51', '\x60', '\xd6',
-                                               '\x51', '\x71', '\x3f', '\xa2', '\xe8', '\xaa', '\x54',
-                                               '\xfa', '\x66', '\x82', '\xb0', '\x4a', '\xab', '\xdd',
-                                               '\x0e', '\x6a', '\xf8', '\xb0', '\xc1', '\xe6', '\xd1',
-                                               '\xfb', '\x4f', '\x3d', '\xaa', '\x43', '\x7f', '\x15' };
 
 void GDNativeAlert::_register_methods() {
     register_method("start_instance", &GDNativeAlert::start_instance);
     register_method("advance_instance", &GDNativeAlert::advance_instance);
     register_method("get_palette", &GDNativeAlert::get_palette);
     register_method("get_visible_page", &GDNativeAlert::get_visible_page);
-    register_method("get_visible_page_width", &GDNativeAlert::get_visible_page_width);
-    register_method("get_visible_page_height", &GDNativeAlert::get_visible_page_height);
     register_method("handle_left_mouse_up", &GDNativeAlert::handle_left_mouse_up);
     register_method("handle_right_mouse_up", &GDNativeAlert::handle_right_mouse_up);
     register_method("handle_right_mouse_down", &GDNativeAlert::handle_right_mouse_down);
     register_method("handle_mouse_area", &GDNativeAlert::handle_mouse_area);
-    register_method("get_score_sample", &GDNativeAlert::get_score_sample);
     register_method("handle_mouse_motion", &GDNativeAlert::handle_mouse_motion);
     register_method("get_cursor_name", &GDNativeAlert::get_cursor_name);
     register_method("get_game_objects", &GDNativeAlert::get_game_objects);
 
     register_signal<GDNativeAlert>("event", "message", GODOT_VARIANT_TYPE_STRING);
-    register_signal<GDNativeAlert>("play_sound", "sample", GODOT_VARIANT_TYPE_OBJECT, "x", GODOT_VARIANT_TYPE_INT, "y", GODOT_VARIANT_TYPE_INT);
-    register_signal<GDNativeAlert>("play_speech", "sample", GODOT_VARIANT_TYPE_OBJECT);
+    register_signal<GDNativeAlert>("play_sound", "name", GODOT_VARIANT_TYPE_STRING, "x", GODOT_VARIANT_TYPE_INT, "y", GODOT_VARIANT_TYPE_INT);
+    register_signal<GDNativeAlert>("play_speech", "name", GODOT_VARIANT_TYPE_STRING);
 }
 
 GDNativeAlert::GDNativeAlert() {
+    game_image = Image::_new();
 }
 
 GDNativeAlert::~GDNativeAlert() {
+    godot::api->godot_free(game_image);
 }
 
 void GDNativeAlert::_init() {
-    game_palette_pba.resize(256 * 3);
-
     String content_path = ProjectSettings::get_singleton()->globalize_path("res://RedAlert");
     String command_line = "-CD\"" + content_path.replace("/", "\\") + "\"";
 
@@ -73,32 +57,6 @@ void GDNativeAlert::_init() {
 #ifdef WIN32
     ShowCursor(TRUE);
 #endif
-
-    PKey fast_key = PKey();
-    uint8_t buffer[512];
-    Int<MAX_UNIT_PRECISION> exp(FAST_KEY_EXP);
-    MPMath::DER_Encode(exp, buffer, MAX_UNIT_PRECISION);
-    fast_key.Decode_Exponent(buffer);
-    fast_key.Decode_Modulus(FAST_KEY_MOD);
-
-    GameMixFile* redalert_mix = new GameMixFile("RedAlert\\REDALERT.MIX", &fast_key);
-    GameMixFile* local_mix = new GameMixFile("LOCAL.MIX", &fast_key);
-    GameMixFile* speech_mix = new GameMixFile("SPEECH.MIX", &fast_key);
-    GameMixFile::Cache("SPEECH.MIX");
-
-    GameMixFile* main_mix = new GameMixFile("RedAlert\\MAIN.MIX", &fast_key);
-    GameMixFile* sounds_mix = new GameMixFile("SOUNDS.MIX", &fast_key);
-    GameMixFile::Cache("SOUNDS.MIX");
-    GameMixFile* allies_mix = new GameMixFile("ALLIES.MIX", &fast_key);
-    GameMixFile::Cache("ALLIES.MIX");
-    GameMixFile* russian_mix = new GameMixFile("RUSSIAN.MIX", &fast_key);
-    GameMixFile::Cache("RUSSIAN.MIX");
-
-    GameMixFile* scores_mix = new GameMixFile("SCORES.MIX", &fast_key);
-    GameMixFile::Cache("SCORES.MIX");
-
-    GameMixFile* hires_mix = new GameMixFile("HIRES.MIX", &fast_key);
-    GameMixFile::Cache("HIRES.MIX");
 
     INIClass RuleINI;
     GameFileClass ini_file = GameFileClass("RULES.INI");
@@ -146,88 +104,14 @@ void GDNativeAlert::_init() {
     CNC_Config(rules);
 }
 
-AudioStreamSample* GDNativeAlert::decode_aud(String name) {
-    char* filename;
-    if (name.find(".") == -1) {
-        filename = (name + ".AUD").alloc_c_string();
-    } else {
-        filename = name.alloc_c_string();
-    }
-
-    unsigned char* aud_data = (unsigned char*)GameMixFile::Retrieve(filename);
-    if (filename != nullptr) godot::api->godot_free(filename);
-
-    if (aud_data == nullptr) return nullptr;
-
-    ADPCMStreamType stream_info;
-
-    // Read in the file's header.
-    AUDHeaderStruct raw_header;
-    memcpy(&raw_header, aud_data, sizeof(raw_header));
-    aud_data += sizeof(raw_header);
-
-    // Compression is ADPCM so we need to init its stream info.
-    if (raw_header.m_Compression == COMP_ADPCM) {
-        stream_info.m_Channels = (raw_header.m_Flags & 1) + 1;
-        stream_info.m_BitsPerSample = raw_header.m_Flags & 2 ? 16 : 8;
-        stream_info.m_CompSize = raw_header.m_Size;
-        stream_info.m_UnCompSize = raw_header.m_Size * (stream_info.m_BitsPerSample / 4);
-        ADPCM_Stream_Init(&stream_info);
-    }
-    else
-    {
-        return nullptr;
-    }
-
-    unsigned char* dechunk_pba_data = new unsigned char[stream_info.m_CompSize];
-    unsigned char* pba_data = new unsigned char[stream_info.m_UnCompSize];
-
-    void* aud_data_buf = (void*)aud_data;
-    int out_size = Sample_Copy(&stream_info, &aud_data_buf, &stream_info.m_CompSize, pba_data, stream_info.m_UnCompSize, dechunk_pba_data);
-
-    PoolByteArray sound_buffer;
-    sound_buffer.resize(out_size);
-    PoolByteArray::Write sound_buffer_write = sound_buffer.write();
-    unsigned char* sound_buffer_data = sound_buffer_write.ptr();
-
-    memcpy(sound_buffer_data, pba_data, out_size);
-
-    delete[] dechunk_pba_data;
-    delete[] pba_data;
-
-    if (out_size)
-    {
-        AudioStreamSample* sample = AudioStreamSample::_new();
-        if (stream_info.m_BitsPerSample == 16)
-        {
-            sample->set_format(AudioStreamSample::FORMAT_16_BITS);
-        }
-        if (stream_info.m_Channels == 2)
-        {
-            sample->set_stereo(true);
-        }
-        sample->set_mix_rate(raw_header.m_Rate);
-        sample->set_data(sound_buffer);
-
-        return sample;
-    }
-
-    return nullptr;
-}
-
-AudioStreamSample* GDNativeAlert::get_score_sample(String name) {
-    return decode_aud(name);
-}
-
 void GDNativeAlert::play_sound(String name, bool is_speech, int x = 0, int y = 0) {
-    AudioStreamSample* sample = decode_aud(name);
     if (is_speech || x < 1 || y < 1)
     {
-        emit_signal("play_speech", sample);
+        emit_signal("play_speech", name);
     }
     else
     {
-        emit_signal("play_sound", sample, x, y);
+        emit_signal("play_sound", name, x, y);
     }
 }
 
@@ -323,58 +207,52 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
 
 bool GDNativeAlert::start_instance(int scenario_index, int build_level, String faction) {
     game_buffer_pba.resize(3072 * 3072);
-    game_buffer_width = 3072;
-    game_buffer_height = 3072;
 
     char* faction_cstr = faction.alloc_c_string();
     return CNC_Start_Instance(scenario_index, build_level, faction_cstr, "GAME_NORMAL", "", NULL, NULL);
     if (faction_cstr != nullptr) godot::api->godot_free(faction_cstr);
 }
 
-bool GDNativeAlert::advance_instance() {
-    return CNC_Advance_Instance(0);
+bool GDNativeAlert::advance_instance(uint64 player_id) {
+    return CNC_Advance_Instance(player_id);
 }
 
 PoolByteArray GDNativeAlert::get_palette() {
     unsigned char palette[256][3];
     CNC_Get_Palette((unsigned char(&)[256][3])palette);
-    // Get palette
+    PoolByteArray palette_buffer;
+    palette_buffer.resize(256 * 3);
     {
-        PoolByteArray::Write palette_pba_write = game_palette_pba.write();
+        PoolByteArray::Write palette_pba_write = palette_buffer.write();
         unsigned char* palette_pba_data = palette_pba_write.ptr();
         memcpy(palette_pba_data, palette, 256 * 3);
     }
-    return game_palette_pba;
+    return palette_buffer;
 }
 
-PoolByteArray GDNativeAlert::get_visible_page() {
-    // Get visible page
+bool GDNativeAlert::get_visible_page() {
     unsigned int width = 0;
     unsigned int height = 0;
 
-    // Get pointer to byte array data
     {
         PoolByteArray::Write pba_write = game_buffer_pba.write();
         unsigned char* pba_data = pba_write.ptr();
-        CNC_Get_Visible_Page(pba_data, width, height);
+        if (!CNC_Get_Visible_Page(pba_data, width, height)) {
+            return false;
+        }
     }
 
-    if (width != game_buffer_width || height != game_buffer_height)
+    if (width != get_width() || height != get_height())
     {
-        game_buffer_width = width;
-        game_buffer_height = height;
         game_buffer_pba.resize(width * height);
     }
 
-    return game_buffer_pba;
-}
+    Image* image = Image::_new();
+    image->create_from_data(width, height, false, Image::FORMAT_L8, game_buffer_pba);
+    set_data(image);
+    set_size_override(Vector2(width, height));
 
-unsigned int GDNativeAlert::get_visible_page_width() {
-    return game_buffer_width;
-}
-
-unsigned int GDNativeAlert::get_visible_page_height() {
-    return game_buffer_height;
+    return true;
 }
 
 void GDNativeAlert::handle_left_mouse_up(unsigned int x, unsigned int y) {

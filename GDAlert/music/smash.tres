@@ -1,0 +1,9 @@
+[gd_resource type="AudioStreamSample" load_steps=2 format=2]
+
+[ext_resource path="res://bin/audio_stream_aud.gdns" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+name = "SMSH226M"
+looping = false
+loop_offset = 0.0

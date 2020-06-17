@@ -12,14 +12,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\external\CnC_Remastered_Collection\REDALERT\DLLInterface.h" />
+    <ClInclude Include="AudioStreamAud.h" />
     <ClInclude Include="CNCDll.h" />
     <ClInclude Include="GDNativeAlert.h" />
     <ClInclude Include="CursorTexture.h" />
+    <ClInclude Include="RedAlertContent.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AudioStreamAud.cpp" />
     <ClCompile Include="GDNativeAlert.cpp" />
     <ClCompile Include="GDLibrary.cpp" />
     <ClCompile Include="CursorTexture.cpp" />
+    <ClCompile Include="RedAlertContent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\CnC_Remastered_Collection\REDALERT\RedAlert.vcxproj">

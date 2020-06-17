@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://debug_assets/framerate_label.gd" type="Script" id=1]
 [ext_resource path="res://in_game/tac_view/tac_view.tscn" type="PackedScene" id=2]
+[ext_resource path="res://music/big_foot.tres" type="AudioStream" id=3]
 
 [sub_resource type="StyleBoxFlat" id=1]
 bg_color = Color( 0, 0, 0, 0.576471 )
@@ -31,4 +32,6 @@ __meta__ = {
 }
 
 [node name="ScorePlayer" type="AudioStreamPlayer" parent="."]
-volume_db = -15.0
+stream = ExtResource( 3 )
+volume_db = -10.0
+autoplay = true

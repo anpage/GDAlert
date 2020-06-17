@@ -1,13 +1,10 @@
 #include "CursorTexture.h"
 
-#include "GDNativeAlert.h"
-
 #include <Image.hpp>
 #include <ImageTexture.hpp>
 
 #include "gamefile.h"
 #include "lcw.h"
-#include "pk.h"
 
 using namespace godot;
 
@@ -52,19 +49,9 @@ Image* CursorTexture::decode_d2_shape(const void* buffer) {
     int height = shape->height;
     int uncompsz = shape->datasize;
 
-    PKey fast_key = PKey();
-    uint8_t key_buffer[512];
-    Int<MAX_UNIT_PRECISION> exp(GDNativeAlert::FAST_KEY_EXP);
-    MPMath::DER_Encode(exp, key_buffer, MAX_UNIT_PRECISION);
-    fast_key.Decode_Exponent(key_buffer);
-    fast_key.Decode_Modulus(GDNativeAlert::FAST_KEY_MOD);
-
-    GameMixFile redalert_mixGameMixFile("RedAlert\\REDALERT.MIX", &fast_key);
-    GameMixFile local_mixGameMixFile("LOCAL.MIX", &fast_key);
-
-    GameFileClass palette_file = GameFileClass("TEMPERAT.PAL");
+    unsigned char* palette_data = (unsigned char* )GameFileClass::Retrieve("TEMPERAT.PAL");
     unsigned char palette[256][3];
-    palette_file.Read(palette, 768);
+    memcpy(palette, palette_data, 768);
 
     PoolByteArray image_buffer;
     {

@@ -22,7 +22,7 @@ config/icon="res://icon.png"
 
 [autoload]
 
-RedAlert="*res://bin/red_alert.gdns"
+RedAlertContent="*res://bin/red_alert_content.gdns"
 GameCursor="*res://game_cursor.gd"
 
 [display]

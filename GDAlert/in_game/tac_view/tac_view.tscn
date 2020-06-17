@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://debug_assets/debug_overlay.gd" type="Script" id=1]
 [ext_resource path="res://in_game/tac_view/tac_view.gd" type="Script" id=2]
@@ -6,6 +6,7 @@
 [ext_resource path="res://in_game/tac_view/rubber_band.tscn" type="PackedScene" id=4]
 [ext_resource path="res://debug_assets/cell_mask.png" type="Texture" id=5]
 [ext_resource path="res://in_game/tac_view/red_alert_placeholder.png" type="Texture" id=6]
+[ext_resource path="res://in_game/tac_view/tac_view_camera.gd" type="Script" id=7]
 
 [sub_resource type="ShaderMaterial" id=1]
 shader = ExtResource( 3 )
@@ -26,8 +27,10 @@ mouse_filter = 1
 anchor_mode = 0
 current = true
 zoom = Vector2( 0.5, 0.5 )
+script = ExtResource( 7 )
 
 [node name="DebugCellGrid" type="TextureRect" parent="."]
+visible = false
 modulate = Color( 1, 1, 1, 0.172549 )
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -49,4 +52,7 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+[connection signal="mouse_moved" from="." to="Camera" method="_on_mouse_moved"]
+[connection signal="started_scrolling" from="." to="Camera" method="_on_started_scrolling"]
+[connection signal="stopped_scrolling" from="." to="Camera" method="_on_stopped_scrolling"]
 [connection signal="select_rect_finish" from="Rubberband" to="." method="_on_select_rect_finish"]

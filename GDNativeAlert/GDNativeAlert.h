@@ -3,7 +3,7 @@
 
 #include <Godot.hpp>
 #include <PoolArrays.hpp>
-#include <Node.hpp>
+#include <ImageTexture.hpp>
 #include <String.hpp>
 #include <AudioStreamSample.hpp>
 
@@ -11,28 +11,22 @@
 
 namespace godot {
 
-    class GDNativeAlert : public Node {
-        GODOT_CLASS(GDNativeAlert, Node);
+    class GDNativeAlert : public ImageTexture {
+        GODOT_CLASS(GDNativeAlert, ImageTexture);
 
     private:
         static GDNativeAlert* callback_instance;
         static void event_callback(const EventCallbackStruct& event);
         void handle_event(const EventCallbackStruct& event);
 
-        static AudioStreamSample* decode_aud(String name);
-
         static int distance(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2);
 
+        Image* game_image;
         PoolByteArray game_buffer_pba;
         PoolByteArray game_palette_pba;
         PoolByteArray speech_buffer;
-        unsigned int game_buffer_width;
-        unsigned int game_buffer_height;
 
     public:
-        static const long FAST_KEY_EXP;
-        static const char FAST_KEY_MOD[42];
-
         static void _register_methods();
 
         GDNativeAlert();
@@ -40,15 +34,11 @@ namespace godot {
 
         void _init();
 
-        AudioStreamSample* get_score_sample(String name);
         void play_sound(String name, bool isSpeech, int x, int y);
-
         bool start_instance(int scenario_index, int build_level, String faction);
-        bool advance_instance();
+        bool advance_instance(uint64 player_id = 0);
         PoolByteArray get_palette();
-        PoolByteArray get_visible_page();
-        unsigned int get_visible_page_width();
-        unsigned int get_visible_page_height();
+        bool get_visible_page();
         void handle_left_mouse_up(unsigned int x, unsigned int y);
         void handle_right_mouse_up(unsigned int x, unsigned int y);
         void handle_right_mouse_down(unsigned int x, unsigned int y);
