@@ -13,13 +13,24 @@
 #include <AudioStreamPlayer.hpp>
 
 #include "mixfile.h"
-#include "pk.h"
 #include "gamefile.h"
 #include "ini.h"
 #include "audio.h"
 #include "adpcm.h"
 
 using namespace godot;
+
+// From PK.H
+const long GDNativeAlert::FAST_KEY_EXP = 65537L;
+
+// From CONST.CPP, base64 encoded
+// "AihRvNoIbTn85FZRYNZRcT+i6KpU+maCsEqr3Q5q+LDB5tH7Tz2qQ38V"
+const char GDNativeAlert::FAST_KEY_MOD[42] = { '\x02', '\x28', '\x51', '\xbc', '\xda', '\x08', '\x6d',
+                                               '\x39', '\xfc', '\xe4', '\x56', '\x51', '\x60', '\xd6',
+                                               '\x51', '\x71', '\x3f', '\xa2', '\xe8', '\xaa', '\x54',
+                                               '\xfa', '\x66', '\x82', '\xb0', '\x4a', '\xab', '\xdd',
+                                               '\x0e', '\x6a', '\xf8', '\xb0', '\xc1', '\xe6', '\xd1',
+                                               '\xfb', '\x4f', '\x3d', '\xaa', '\x43', '\x7f', '\x15' };
 
 void GDNativeAlert::_register_methods() {
     register_method("start_instance", &GDNativeAlert::start_instance);
@@ -62,38 +73,30 @@ void GDNativeAlert::_init() {
     ShowCursor(TRUE);
 #endif
 
-    PKey fastKey = PKey();
+    PKey fast_key = PKey();
     uint8_t buffer[512];
-
-    // From PK.H
-    Int<MAX_UNIT_PRECISION> exp(65537L);
+    Int<MAX_UNIT_PRECISION> exp(FAST_KEY_EXP);
     MPMath::DER_Encode(exp, buffer, MAX_UNIT_PRECISION);
-    fastKey.Decode_Exponent(buffer);
+    fast_key.Decode_Exponent(buffer);
+    fast_key.Decode_Modulus(FAST_KEY_MOD);
 
-    // From CONST.CPP, base64 encoded
-    // "AihRvNoIbTn85FZRYNZRcT+i6KpU+maCsEqr3Q5q+LDB5tH7Tz2qQ38V"
-    const char mod[] = { '\x02', '\x28', '\x51', '\xbc', '\xda', '\x08', '\x6d', '\x39', '\xfc', '\xe4', '\x56', '\x51', '\x60', '\xd6', '\x51', '\x71',
-                         '\x3f', '\xa2', '\xe8', '\xaa', '\x54', '\xfa', '\x66', '\x82', '\xb0', '\x4a', '\xab', '\xdd', '\x0e', '\x6a', '\xf8', '\xb0',
-                         '\xc1', '\xe6', '\xd1', '\xfb', '\x4f', '\x3d', '\xaa', '\x43', '\x7f', '\x15' };
-    fastKey.Decode_Modulus(mod);
-
-    GameMixFile* redalert_mix = new GameMixFile("RedAlert\\REDALERT.MIX", &fastKey);
-    GameMixFile* local_mix = new GameMixFile("LOCAL.MIX", &fastKey);
-    GameMixFile* speech_mix = new GameMixFile("SPEECH.MIX", &fastKey);
+    GameMixFile* redalert_mix = new GameMixFile("RedAlert\\REDALERT.MIX", &fast_key);
+    GameMixFile* local_mix = new GameMixFile("LOCAL.MIX", &fast_key);
+    GameMixFile* speech_mix = new GameMixFile("SPEECH.MIX", &fast_key);
     GameMixFile::Cache("SPEECH.MIX");
 
-    GameMixFile* main_mix = new GameMixFile("RedAlert\\MAIN.MIX", &fastKey);
-    GameMixFile* sounds_mix = new GameMixFile("SOUNDS.MIX", &fastKey);
+    GameMixFile* main_mix = new GameMixFile("RedAlert\\MAIN.MIX", &fast_key);
+    GameMixFile* sounds_mix = new GameMixFile("SOUNDS.MIX", &fast_key);
     GameMixFile::Cache("SOUNDS.MIX");
-    GameMixFile* allies_mix = new GameMixFile("ALLIES.MIX", &fastKey);
+    GameMixFile* allies_mix = new GameMixFile("ALLIES.MIX", &fast_key);
     GameMixFile::Cache("ALLIES.MIX");
-    GameMixFile* russian_mix = new GameMixFile("RUSSIAN.MIX", &fastKey);
+    GameMixFile* russian_mix = new GameMixFile("RUSSIAN.MIX", &fast_key);
     GameMixFile::Cache("RUSSIAN.MIX");
 
-    GameMixFile* scores_mix = new GameMixFile("SCORES.MIX", &fastKey);
+    GameMixFile* scores_mix = new GameMixFile("SCORES.MIX", &fast_key);
     GameMixFile::Cache("SCORES.MIX");
 
-    GameMixFile* hires_mix = new GameMixFile("HIRES.MIX", &fastKey);
+    GameMixFile* hires_mix = new GameMixFile("HIRES.MIX", &fast_key);
     GameMixFile::Cache("HIRES.MIX");
 
     INIClass RuleINI;

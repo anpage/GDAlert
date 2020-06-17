@@ -30,6 +30,9 @@ namespace godot {
         unsigned int game_buffer_height;
 
     public:
+        static const long FAST_KEY_EXP;
+        static const char FAST_KEY_MOD[42];
+
         static void _register_methods();
 
         GDNativeAlert();

@@ -1,67 +1,76 @@
 extends Node
+# Manages cursor graphics
 
-onready var ShapeTexture = preload("res://bin/shape_texture.gdns")
 
-var mouse_control: Dictionary
-var textures: Dictionary = {}
+export var data_file_path = "res://mouse_default.json"
 
-var is_loaded: bool = false
+var _mouse_control: Dictionary
+var _textures: Dictionary
+var _is_loaded := false
+var _framerate := 0
+var _frames := 0
+var _frame := 0
+var _hotspot := Vector2(0, 0)
+var _texture: AnimatedTexture
+var _time_since_update := 0.0
+var _cursor_name: String
 
-var framerate: int = 0
-var frames = 0
-var frame = 0
-var hotspot: Vector2 = Vector2(0, 0)
-var texture: AnimatedTexture
-var time_since_update: float = 0.0
-var cursor_name: String
+onready var ShapeTexture = preload("res://bin/cursor_texture.gdns")
 
 
 func _ready():
-	texture = ShapeTexture.new()
-	var f = File.new()
-	f.open("res://mouse_default.json", File.READ)
-	mouse_control = JSON.parse(f.get_as_text()).result
+	_texture = ShapeTexture.new()
+	var f := File.new()
+	var err := f.open(data_file_path, File.READ)
+	
+	if not err:
+		_mouse_control = JSON.parse(f.get_as_text()).result
+		
+		_load_cursors()
+	else:
+		print_debug("Error loading cursor data file: %d" % err)
+	
 	f.close()
 
 
-func load_cursors():
-	var control_data: Dictionary = mouse_control["control_data"]
-	for k in control_data.keys():
-		var data: Dictionary = control_data[k]
-		var start_frame: int = data["start_frame"]
-		var frame_count = data["frame_count"]
-		var new_texture = ShapeTexture.new()
-		new_texture.load_cursor_texture(mouse_control["filename"], start_frame, frame_count)
-		textures[k] = new_texture
-
-	is_loaded = true
-
-	set_cursor("MOUSE_NORMAL")
+func _process(delta):
+	if _framerate != 0 and _is_loaded:
+		_time_since_update += delta
+		if _time_since_update >= 1.0 / _framerate:
+			var cursor_texture := _texture.get_frame_texture(_frame)
+			Input.set_custom_mouse_cursor(cursor_texture, 0, _hotspot)
+			_frame += 1
+			if _frame >= _frames:
+				_frame = 0
+			_time_since_update = 0
 
 
 func set_cursor(name):
-	if is_loaded and name != cursor_name:
-		cursor_name = name
-		var control_data: Dictionary = mouse_control["control_data"]
+	if _is_loaded and name != _cursor_name:
+		_cursor_name = name
+		var control_data: Dictionary = _mouse_control["control_data"]
 		var data: Dictionary = control_data[name]
-		frames = data["frame_count"]
-		framerate = data["frame_rate"] * 2
-		hotspot = Vector2(data["hspot_x"] * 2, data["hspot_y"] * 2)
-		texture = textures[name]
-		frame = 1
-		time_since_update = 0
+		_frames = data["frame_count"]
+		_framerate = data["frame_rate"] * 2
+		_hotspot = Vector2(data["hspot_x"] * 2, data["hspot_y"] * 2)
+		_texture = _textures[name]
+		_frame = 1
+		_time_since_update = 0
 
-		var cursor_texture = texture.get_frame_texture(0)
-		Input.set_custom_mouse_cursor(cursor_texture, 0, hotspot)
+		var cursor_texture := _texture.get_frame_texture(0)
+		Input.set_custom_mouse_cursor(cursor_texture, 0, _hotspot)
 
 
-func _process(delta):
-	if framerate != 0 and is_loaded:
-		time_since_update += delta
-		if time_since_update >= 1.0 / framerate:
-			var cursor_texture = texture.get_frame_texture(frame)
-			Input.set_custom_mouse_cursor(cursor_texture, 0, hotspot)
-			frame += 1
-			if frame >= frames:
-				frame = 0
-			time_since_update = 0
+func _load_cursors():
+	var control_data: Dictionary = _mouse_control["control_data"]
+	for k in control_data.keys():
+		var data: Dictionary = control_data[k]
+		var start_frame: int = data["start_frame"]
+		var frame_count: int = data["frame_count"]
+		var new_texture = ShapeTexture.new()
+		new_texture.load_cursor_texture(_mouse_control["filename"], start_frame, frame_count)
+		_textures[k] = new_texture
+
+	_is_loaded = true
+
+	set_cursor("MOUSE_NORMAL")

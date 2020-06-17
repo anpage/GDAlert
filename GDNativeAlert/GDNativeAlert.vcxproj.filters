@@ -21,10 +21,10 @@
     <ClInclude Include="GDNativeAlert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ShapeTexture.h">
+    <ClInclude Include="..\external\CnC_Remastered_Collection\REDALERT\DLLInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\external\CnC_Remastered_Collection\REDALERT\DLLInterface.h">
+    <ClInclude Include="CursorTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,7 +35,7 @@
     <ClCompile Include="GDNativeAlert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ShapeTexture.cpp">
+    <ClCompile Include="CursorTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,28 +1,32 @@
-#include "ShapeTexture.h"
+#include "CursorTexture.h"
+
+#include "GDNativeAlert.h"
 
 #include <Image.hpp>
 #include <ImageTexture.hpp>
 
 #include "gamefile.h"
 #include "lcw.h"
+#include "pk.h"
 
 using namespace godot;
 
-void ShapeTexture::_register_methods() {
-    register_method("load_from_mix", &ShapeTexture::load_from_mix);
-    register_method("load_cursor_texture", &ShapeTexture::load_cursor_texture);
+uint8_t CursorTexture::cursor_decompress_buffer[65000];
+
+void CursorTexture::_register_methods() {
+    register_method("load_cursor_texture", &CursorTexture::load_cursor_texture);
 }
 
-ShapeTexture::ShapeTexture() {
+CursorTexture::CursorTexture() {
 }
 
-ShapeTexture::~ShapeTexture() {
+CursorTexture::~CursorTexture() {
 }
 
-void ShapeTexture::_init() {
+void CursorTexture::_init() {
 }
 
-void* ShapeTexture::extract_shape(const void* buffer, int shape) {
+void* CursorTexture::extract_shape(const void* buffer, int shape) {
     shp_header* block = (shp_header*)buffer;
     uint32_t offset;
     uint8_t* byte_buffer = (uint8_t*)buffer;
@@ -37,12 +41,7 @@ void* ShapeTexture::extract_shape(const void* buffer, int shape) {
     return(byte_buffer + 2 + offset);
 }
 
-uint8_t ShapeTexture::g_mouseShapeBuffer[65000];
-
-#define MOUSE_MAX_WIDTH 64
-#define MOUSE_MAX_HEIGHT 64
-
-Image* ShapeTexture::decode_d2_shape(const void* buffer) {
+Image* CursorTexture::decode_d2_shape(const void* buffer) {
     d2_shape_header* shape = (d2_shape_header*)buffer;
     uint8_t* byte_buffer = (uint8_t*)buffer;
 
@@ -53,22 +52,33 @@ Image* ShapeTexture::decode_d2_shape(const void* buffer) {
     int height = shape->height;
     int uncompsz = shape->datasize;
 
+    PKey fast_key = PKey();
+    uint8_t key_buffer[512];
+    Int<MAX_UNIT_PRECISION> exp(GDNativeAlert::FAST_KEY_EXP);
+    MPMath::DER_Encode(exp, key_buffer, MAX_UNIT_PRECISION);
+    fast_key.Decode_Exponent(key_buffer);
+    fast_key.Decode_Modulus(GDNativeAlert::FAST_KEY_MOD);
+
+    GameMixFile redalert_mixGameMixFile("RedAlert\\REDALERT.MIX", &fast_key);
+    GameMixFile local_mixGameMixFile("LOCAL.MIX", &fast_key);
+
+    GameFileClass palette_file = GameFileClass("TEMPERAT.PAL");
     unsigned char palette[256][3];
-    CNC_Get_Palette((unsigned char(&)[256][3])palette);
+    palette_file.Read(palette, 768);
 
     PoolByteArray image_buffer;
     {
-        image_buffer.resize(MOUSE_MAX_WIDTH * MOUSE_MAX_HEIGHT * 4);
+        image_buffer.resize(CURSOR_MAX_WIDTH * CURSOR_MAX_HEIGHT * 4);
         PoolByteArray::Write image_buffer_write = image_buffer.write();
         unsigned char* image_buffer_data = image_buffer_write.ptr();
 
         uint16_t frame_flags = shape->shape_type;
 
-        if (width <= MOUSE_MAX_WIDTH && height <= MOUSE_MAX_HEIGHT) {
+        if (width <= CURSOR_MAX_WIDTH && height <= CURSOR_MAX_HEIGHT) {
             //Flag bit 2 is flag for no compression on frame, decompress to
             //intermediate buffer if flag is clear
             if (!(frame_flags & 2)) {
-                decmp_buff = g_mouseShapeBuffer;
+                decmp_buff = cursor_decompress_buffer;
                 lcw_buff = reinterpret_cast<uint8_t*>(shape);
                 frame_flags = shape->shape_type | 2;
 
@@ -84,7 +94,7 @@ Image* ShapeTexture::decode_d2_shape(const void* buffer) {
                 }
 
                 LCW_Uncomp(lcw_buff, decmp_buff, uncompsz);
-                byte_buffer = g_mouseShapeBuffer;
+                byte_buffer = cursor_decompress_buffer;
             }
 
             if (frame_flags & 1) {
@@ -134,38 +144,11 @@ Image* ShapeTexture::decode_d2_shape(const void* buffer) {
     return image;
 }
 
-bool ShapeTexture::load_from_mix(String filename) {
+bool CursorTexture::load_cursor_texture(String filename, int start_frame, int num_frames) {
     char* name;
     name = filename.alloc_c_string();
 
-    uint8_t* shp_data = (uint8_t*)GameMixFile::Retrieve(name);
-    if (name != nullptr) godot::api->godot_free(name);
-
-    if (shp_data == nullptr) return false;
-
-    shp_header* block = (shp_header*)shp_data;
-
-    if (block->num_shapes < 1) return false;
-
-    for (int i = 0; i < block->num_shapes; i++)
-    {
-        void* shape_data = extract_shape(shp_data, i);
-        Image* image = decode_d2_shape(shape_data);
-        ImageTexture* texture = ImageTexture::_new();
-        texture->create_from_image(image, 0);
-        this->set_frame_texture(i, texture);
-    }
-
-    this->set_frames(block->num_shapes);
-
-    return true;
-}
-
-bool ShapeTexture::load_cursor_texture(String filename, int start_frame, int num_frames) {
-    char* name;
-    name = filename.alloc_c_string();
-
-    uint8_t* shp_data = (uint8_t*)GameMixFile::Retrieve(name);
+    uint8_t* shp_data = (uint8_t*)GameFileClass::Retrieve(name);
     if (name != nullptr) godot::api->godot_free(name);
 
     if (shp_data == nullptr) return false;

@@ -1,7 +1,5 @@
 extends TextureRect
 
-onready var ShapeTexture = preload("res://bin/shape_texture.gdns")
-
 var page_width = 0
 var page_height = 0
 var game_image = Image.new()
@@ -66,8 +64,6 @@ func _ready():
 	score_sample.loop_end = int(score_sample.data.size() / (score_sample.format + 1.0))
 	score_player.set_stream(score_sample)
 	score_player.play()
-	
-	GameCursor.load_cursors()
 
 func _process(delta):
 	time_since_game_tick += delta

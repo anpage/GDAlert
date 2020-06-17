@@ -23,11 +23,14 @@ namespace godot {
         uint16_t datasize;
     };
 
-    class ShapeTexture : public AnimatedTexture {
-        GODOT_CLASS(ShapeTexture, AnimatedTexture);
+    class CursorTexture : public AnimatedTexture {
+        GODOT_CLASS(CursorTexture, AnimatedTexture);
 
     private:
-        static uint8_t g_mouseShapeBuffer[65000];
+        static const int CURSOR_MAX_WIDTH = 64;
+        static const int CURSOR_MAX_HEIGHT = 64;
+
+        static uint8_t cursor_decompress_buffer[65000];
 
         static void* extract_shape(const void* buffer, int shape);
         static Image* decode_d2_shape(const void* buffer);
@@ -35,12 +38,11 @@ namespace godot {
     public:
         static void _register_methods();
 
-        ShapeTexture();
-        ~ShapeTexture();
+        CursorTexture();
+        ~CursorTexture();
 
         void _init();
 
-        bool load_from_mix(String filename);
         bool load_cursor_texture(String filename, int start_frame, int num_frames);
     };
 

@@ -14,12 +14,12 @@
     <ClInclude Include="..\external\CnC_Remastered_Collection\REDALERT\DLLInterface.h" />
     <ClInclude Include="CNCDll.h" />
     <ClInclude Include="GDNativeAlert.h" />
-    <ClInclude Include="ShapeTexture.h" />
+    <ClInclude Include="CursorTexture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GDNativeAlert.cpp" />
     <ClCompile Include="GDLibrary.cpp" />
-    <ClCompile Include="ShapeTexture.cpp" />
+    <ClCompile Include="CursorTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\external\CnC_Remastered_Collection\REDALERT\RedAlert.vcxproj">
@@ -89,6 +89,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>base.lib;captnlog.lib;chronoshift.lib;RedAlert.lib;libgodot-cpp.windows.debug.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <PreBuildEvent>
       <Command>xcopy "$(SolutionDir)$(Configuration)\RedAlert.*" "$(TargetDir)" /Y /E /D</Command>
