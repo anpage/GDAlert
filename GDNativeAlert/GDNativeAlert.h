@@ -15,6 +15,17 @@ namespace godot {
         GODOT_CLASS(GDNativeAlert, ImageTexture);
 
     private:
+        static const int GAME_STATE_BUFFER_SIZE = 0x20000;
+
+        static const int LEPTONS_PER_CELL = 256;
+        static const int PIXELS_PER_CELL = 24;
+
+        CNCPlayerInfoStruct* player_state_cache;
+        CNCObjectListStruct* game_state_cache;
+        CNCMapDataStruct* map_state_cache;
+
+        unsigned char palette_cache[256][3];
+
         static GDNativeAlert* callback_instance;
         static void event_callback(const EventCallbackStruct& event);
         void handle_event(const EventCallbackStruct& event);
@@ -45,7 +56,7 @@ namespace godot {
         void handle_mouse_motion(unsigned int x, unsigned int y);
         String get_cursor_name(real_t x, real_t y);
         Array get_game_objects();
-        CNCObjectStruct* get_nearest_object(CNCObjectListStruct* layers, real_t x, real_t y);
+        CNCObjectStruct* get_nearest_object(real_t x, real_t y);
     };
 
 }

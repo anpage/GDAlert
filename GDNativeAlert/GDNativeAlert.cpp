@@ -57,10 +57,18 @@ void GDNativeAlert::_register_methods() {
 
 GDNativeAlert::GDNativeAlert() {
     game_image = Image::_new();
+
+    player_state_cache = (CNCPlayerInfoStruct*)new unsigned char[sizeof(CNCPlayerInfoStruct) + 33];
+    game_state_cache = (CNCObjectListStruct*)new unsigned char[GAME_STATE_BUFFER_SIZE];
+    map_state_cache = new CNCMapDataStruct;
 }
 
 GDNativeAlert::~GDNativeAlert() {
     godot::api->godot_free(game_image);
+
+    delete[] player_state_cache;
+    delete[] game_state_cache;
+    delete map_state_cache;
 }
 
 void GDNativeAlert::_init() {
@@ -301,23 +309,67 @@ bool GDNativeAlert::start_instance(int scenario_index, int build_level, String f
     game_buffer_pba.resize(3072 * 3072);
 
     char* faction_cstr = faction.alloc_c_string();
-    return CNC_Start_Instance(scenario_index, build_level, faction_cstr, "GAME_NORMAL", "", NULL, NULL);
+    bool instance_started = CNC_Start_Instance(scenario_index, build_level, faction_cstr, "GAME_NORMAL", "", NULL, NULL);
     if (faction_cstr != nullptr) godot::api->godot_free(faction_cstr);
+
+    // Cache game states
+    if (instance_started) {
+        bool cached_game_state = CNC_Get_Game_State(GAME_STATE_LAYERS, 0, (unsigned char*)game_state_cache, GAME_STATE_BUFFER_SIZE);
+        if (cached_game_state == false)
+            return false;
+
+        bool cached_map_state = CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)map_state_cache, sizeof(CNCMapDataStruct));
+        if (cached_map_state == false)
+            return false;
+
+        bool cached_player_state = CNC_Get_Game_State(GAME_STATE_PLAYER_INFO, 0, (unsigned char*)player_state_cache, sizeof(CNCPlayerInfoStruct) + 33);
+        if (cached_player_state == false)
+            return false;
+
+        bool cached_palette = CNC_Get_Palette((unsigned char(&)[256][3])palette_cache);
+        if (cached_palette == false)
+            return false;
+
+        return true;
+    }
+
+    return false;
 }
 
 bool GDNativeAlert::advance_instance(uint64 player_id) {
-    return CNC_Advance_Instance(player_id);
+    bool instance_advanced = CNC_Advance_Instance(player_id);
+
+    // Cache game states
+    if (instance_advanced) {
+        bool cached_game_state = CNC_Get_Game_State(GAME_STATE_LAYERS, 0, (unsigned char*)game_state_cache, GAME_STATE_BUFFER_SIZE);
+        if (cached_game_state == false)
+            return false;
+
+        bool cached_map_state = CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)map_state_cache, sizeof(CNCMapDataStruct));
+        if (cached_map_state == false)
+            return false;
+
+        bool cached_player_state = CNC_Get_Game_State(GAME_STATE_PLAYER_INFO, 0, (unsigned char*)player_state_cache, sizeof(CNCPlayerInfoStruct) + 33);
+        if (cached_player_state == false)
+            return false;
+
+        bool cached_palette = CNC_Get_Palette((unsigned char(&)[256][3])palette_cache);
+        if (cached_palette == false)
+            return false;
+
+        return true;
+    }
+
+    return false;
 }
 
 PoolByteArray GDNativeAlert::get_palette() {
-    unsigned char palette[256][3];
-    CNC_Get_Palette((unsigned char(&)[256][3])palette);
     PoolByteArray palette_buffer;
     palette_buffer.resize(256 * 3);
     {
         PoolByteArray::Write palette_pba_write = palette_buffer.write();
         unsigned char* palette_pba_data = palette_pba_write.ptr();
-        memcpy(palette_pba_data, palette, 256 * 3);
+        memcpy(palette_pba_data, palette_cache, 256 * 3);
     }
     return palette_buffer;
 }
@@ -367,55 +419,68 @@ void GDNativeAlert::handle_mouse_motion(unsigned int x, unsigned int y) {
     CNC_Handle_Input(INPUT_REQUEST_MOUSE_MOVE, NULL, 0, x, y, NULL, NULL);
 }
 
+Array GDNativeAlert::get_game_objects() {
+    Array objects;
+
+    for (int i = 0; i < game_state_cache->Count; i++) {
+        CNCObjectStruct* object = game_state_cache->Objects + i;
+
+        // We only care about selectable objects for now
+        if (!object->IsSelectable)
+            continue;
+
+        Dictionary object_dict;
+
+        object_dict["position"] = Vector2(object->PositionX, object->PositionY);
+        object_dict["size"] = Vector2(object->DimensionX, object->DimensionY);
+
+        int top_left_x = object->CenterCoordX - (object->Width / 2);
+        int top_left_y = object->CenterCoordY - (object->Height / 2);
+
+        int top_left_cell_x = top_left_x / LEPTONS_PER_CELL;
+        int top_left_cell_y = top_left_y / LEPTONS_PER_CELL;
+
+        Array occupy_list;
+
+        for (int i = 0; i < object->OccupyListLength; i++) {
+            short cell_offset = object->OccupyList[i];
+            int cell_offset_x = cell_offset % MAP_MAX_CELL_WIDTH;
+            int cell_offset_y = cell_offset / MAP_MAX_CELL_WIDTH;
+            int cell_new_x = (top_left_cell_x + cell_offset_x) - map_state_cache->OriginalMapCellX;
+            int cell_new_y = (top_left_cell_y + cell_offset_y) - map_state_cache->OriginalMapCellY;
+            occupy_list.push_front(Vector2(cell_new_x * PIXELS_PER_CELL, cell_new_y * PIXELS_PER_CELL));
+        }
+
+        object_dict["occupied_cells"] = occupy_list;
+
+        objects.push_front(object_dict);
+    }
+
+    return objects;
+}
+
 String GDNativeAlert::get_cursor_name(real_t x, real_t y) {
-    unsigned int buff_size = sizeof(CNCPlayerInfoStruct) + 33;
-    uint8_t* state = new uint8_t[buff_size];
-    CNC_Get_Game_State(GAME_STATE_PLAYER_INFO, 0, (unsigned char*)state, buff_size);
-    CNCPlayerInfoStruct* player_state = (CNCPlayerInfoStruct*)state;
-
-    unsigned char* layer_state = new unsigned char[0x100000];
-    bool got_layers = CNC_Get_Game_State(GAME_STATE_LAYERS, 0, layer_state, 0x10000);
-    CNCObjectListStruct* layers = (CNCObjectListStruct*)layer_state;
-
-    CNCMapDataStruct* map_state = new CNCMapDataStruct;
-    CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)map_state, sizeof(CNCMapDataStruct));
-
-    CNCObjectStruct* nearest_object = get_nearest_object(layers, (map_state->OriginalMapCellX * 24) + x, (map_state->OriginalMapCellY * 24) + y);
+    CNCObjectStruct* nearest_object = get_nearest_object((map_state_cache->OriginalMapCellX * 24) + x, (map_state_cache->OriginalMapCellY * 24) + y);
     if (nearest_object != nullptr)
     {
-        DllActionTypeEnum action = nearest_object->ActionWithSelected[player_state->House];
+        DllActionTypeEnum action = nearest_object->ActionWithSelected[player_state_cache->House];
 
         switch (action)
         {
         case DAT_ATTACK:
-            delete[] state;
-            delete[] layer_state;
-            delete map_state;
             return "MOUSE_CAN_ATTACK";
         case DAT_ATTACK_OUT_OF_RANGE:
-            delete[] state;
-            delete[] layer_state;
-            delete map_state;
             return "MOUSE_STAY_ATTACK";
         case DAT_SABOTAGE:
-            delete[] state;
-            delete[] layer_state;
-            delete map_state;
             return "MOUSE_DEMOLITIONS";
         case DAT_ENTER:
-            delete[] state;
-            delete[] layer_state;
-            delete map_state;
             return "MOUSE_ENTER";
         case DAT_SELECT:
-            delete[] state;
-            delete[] layer_state;
-            delete map_state;
             return "MOUSE_CAN_SELECT";
         }
     }
 
-    if (player_state->SelectedID == -1)
+    if (player_state_cache->SelectedID == -1)
     {
         String mouse = "MOUSE_NORMAL";
 
@@ -424,25 +489,18 @@ String GDNativeAlert::get_cursor_name(real_t x, real_t y) {
             mouse = "MOUSE_CAN_SELECT";
         }
 
-        delete[] state;
-        delete[] layer_state;
-        delete map_state;
         return mouse;
     }
 
-    unsigned int action_count = player_state->ActionWithSelectedCount;
+    unsigned int action_count = player_state_cache->ActionWithSelectedCount;
 
     DllActionTypeEnum* actions = new DllActionTypeEnum[action_count];
-    actions = player_state->ActionWithSelected;
+    actions = player_state_cache->ActionWithSelected;
 
     int map_cell_x = (x / 24);
     int map_cell_y = (y / 24);
 
-    DllActionTypeEnum action = actions[map_cell_y * map_state->OriginalMapCellWidth + map_cell_x];
-
-    delete[] state;
-    delete[] layer_state;
-    delete map_state;
+    DllActionTypeEnum action = actions[map_cell_y * map_state_cache->OriginalMapCellWidth + map_cell_x];
 
     switch (action)
     {
@@ -453,58 +511,6 @@ String GDNativeAlert::get_cursor_name(real_t x, real_t y) {
     default:
         return "MOUSE_NORMAL";
     }
-}
-
-Array GDNativeAlert::get_game_objects() {
-    unsigned char* layer_state = new unsigned char[0x200000];
-    bool got_layers = CNC_Get_Game_State(GAME_STATE_LAYERS, 0, layer_state, 0x20000);
-    CNCObjectListStruct* layers = (CNCObjectListStruct*)layer_state;
-
-    CNCMapDataStruct* map_state = new CNCMapDataStruct;
-    CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)map_state, sizeof(CNCMapDataStruct));
-
-    Array objects;
-
-    for (int i = 0; i < layers->Count; i++) {
-        CNCObjectStruct* object = layers->Objects + i;
-
-        Dictionary object_dict;
-
-        object_dict["PositionX"] = object->PositionX;
-        object_dict["PositionY"] = object->PositionY;
-
-        object_dict["CenterCoordX"] = lepton_to_pixel(map_state->OriginalMapCellX, object->CenterCoordX);
-        object_dict["CenterCoordY"] = lepton_to_pixel(map_state->OriginalMapCellY, object->CenterCoordY);
-
-        object_dict["DimensionX"] = object->DimensionX;
-        object_dict["DimensionY"] = object->DimensionY;
-
-        real_t top_left_x = object->CenterCoordX - (((object->DimensionX / 24) * 256) / 2);
-        real_t top_left_y = object->CenterCoordY - (((object->DimensionY / 24) * 256) / 2);
-
-        int top_left_cell_x = top_left_x / 256;
-        int top_left_cell_y = top_left_y / 256;
-
-        Array occupy_list;
-
-        for (int i = 0; i < object->OccupyListLength; i++) {
-            short cell_offset = object->OccupyList[i];
-            int cell_offset_x = cell_offset % 128;
-            int cell_offset_y = cell_offset / 128;
-            int cell_new_x = (top_left_cell_x + cell_offset_x) - map_state->OriginalMapCellX;
-            int cell_new_y = (top_left_cell_y + cell_offset_y) - map_state->OriginalMapCellY;
-            occupy_list.push_front(Vector2(cell_new_x * 24, cell_new_y * 24));
-        }
-
-        object_dict["OccupyList"] = occupy_list;
-
-        objects.push_front(object_dict);
-    }
-
-    delete[] layer_state;
-    delete map_state;
-
-    return objects;
 }
 
 int GDNativeAlert::distance(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2)
@@ -521,14 +527,14 @@ int GDNativeAlert::distance(unsigned short x1, unsigned short y1, unsigned short
     return(diff2 + ((unsigned)diff1 / 2));
 }
 
-CNCObjectStruct* GDNativeAlert::get_nearest_object(CNCObjectListStruct* layers, real_t x, real_t y) {
+CNCObjectStruct* GDNativeAlert::get_nearest_object(real_t x, real_t y) {
     int lepton_position_x = (x / 24) * 256;
     int lepton_position_y = (y / 24) * 256;
 
     CNCObjectStruct* nearest_object = nullptr;
     int nearest_object_distance;
-    for (int i = 0; i < layers->Count; i++) {
-        CNCObjectStruct* object = layers->Objects + i;
+    for (int i = 0; i < game_state_cache->Count; i++) {
+        CNCObjectStruct* object = game_state_cache->Objects + i;
         if (!object->IsSelectable) continue;
 
         if (object->Type == BUILDING || object->Type == BUILDING_TYPE) {
