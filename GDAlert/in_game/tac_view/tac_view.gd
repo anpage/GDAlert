@@ -65,7 +65,7 @@ func _ready():
 	game_image.create(256, 256, false, Image.FORMAT_L8)
 	game_image.fill(Color(1, 0, 0, 1))
 
-	texture = RedAlert.new()
+	texture = RedAlert.new() as ImageTexture
 	texture.create_from_image(game_image, 0)
 	texture.connect("event_not_handled", self, "_debug_message")
 	texture.connect("sound_played", self, "_play_sound")
