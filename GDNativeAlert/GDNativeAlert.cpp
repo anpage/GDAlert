@@ -65,7 +65,7 @@ GDNativeAlert::~GDNativeAlert() {
 
 void GDNativeAlert::_init() {
     String content_path = ProjectSettings::get_singleton()->globalize_path("res://RedAlert");
-    String command_line = "-CD\"" + content_path.replace("/", "\\") + "\"";
+    String command_line = "-CD\"" + content_path + "\"";
 
     char* command_line_cstr = command_line.alloc_c_string();
     callback_instance = this;
