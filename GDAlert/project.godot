@@ -9,12 +9,12 @@
 config_version=4
 
 _global_script_classes=[ {
-"base": "",
+"base": "AudioStreamSample",
 "class": "AudioStreamAud",
 "language": "NativeScript",
 "path": "res://bin/audio_stream_aud.gdns"
 }, {
-"base": "",
+"base": "ImageTexture",
 "class": "RedAlert",
 "language": "NativeScript",
 "path": "res://bin/red_alert.gdns"

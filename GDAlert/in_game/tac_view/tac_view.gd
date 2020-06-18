@@ -65,15 +65,14 @@ func _ready():
 	game_image.create(256, 256, false, Image.FORMAT_L8)
 	game_image.fill(Color(1, 0, 0, 1))
 
-	var game = RedAlert.new()
-	texture = game as ImageTexture
+	texture = RedAlert.new()
 	texture.create_from_image(game_image, 0)
-	game.connect("event_not_handled", self, "_debug_message")
-	game.connect("sound_played", self, "_play_sound")
-	game.connect("speech_played", self, "_play_speech")
+	texture.connect("event_not_handled", self, "_debug_message")
+	texture.connect("sound_played", self, "_play_sound")
+	texture.connect("speech_played", self, "_play_speech")
 
 	# RedAlert.start_instance(scenario_number, build_level, "ALLY" or "USSR")
-	game.start_instance(1, 10, "ALLY")
+	texture.start_instance(1, 10, "ALLY")
 
 	game_palette_image.create(256, 1, false, Image.FORMAT_RGB8)
 	game_palette_texture = ImageTexture.new()
