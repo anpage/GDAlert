@@ -15,16 +15,15 @@ var has_selected := false
 
 var time_since_game_tick := 0.0
 
-onready var RedAlert = preload("res://bin/red_alert.gdns")
-onready var AudSample = preload("res://bin/audio_stream_aud.gdns")
 
-
-func debug_message(msg):
+func _debug_message(msg):
 	print_debug(msg)
 
 
-func play_speech(name: String):
-	var sample = AudSample.new()
+func _play_speech(event):
+	var name = event["speech_name"]
+
+	var sample = AudioStreamAud.new()
 	sample.name = name
 
 	var player: AudioStreamPlayer = AudioStreamPlayer.new()
@@ -36,30 +35,45 @@ func play_speech(name: String):
 	player.queue_free()
 
 
-func play_sound(name: String, x: int, y: int):
-	var sample = AudSample.new()
+func _play_sound(event):
+	var name = event["sound_effect_name"]
+	var position: Vector2 = event["position"]
+
+	var sample = AudioStreamAud.new()
 	sample.name = name
 
-	var player: AudioStreamPlayer2D = AudioStreamPlayer2D.new()
-	add_child(player)
-	player.set_stream(sample)
-	player.position = Vector2(x, y)
-	player.volume_db = -15;
-	player.play()
-	yield(player, "finished")
-	player.queue_free()
+	if position.x < 0 or position.y < 0:
+		var player: AudioStreamPlayer = AudioStreamPlayer.new()
+		add_child(player)
+		player.set_stream(sample)
+		player.volume_db = -15;
+		player.play()
+		yield(player, "finished")
+		player.queue_free()
+	else:
+		var player: AudioStreamPlayer2D = AudioStreamPlayer2D.new()
+		add_child(player)
+		player.set_stream(sample)
+		player.position = position
+		player.volume_db = -15;
+		player.play()
+		yield(player, "finished")
+		player.queue_free()
 
 
 func _ready():
 	game_image.create(256, 256, false, Image.FORMAT_L8)
 	game_image.fill(Color(1, 0, 0, 1))
-	texture = RedAlert.new()
+
+	var game = RedAlert.new()
+	texture = game as ImageTexture
 	texture.create_from_image(game_image, 0)
-	texture.connect("event", self, "debug_message")
-	texture.connect("play_sound", self, "play_sound")
-	texture.connect("play_speech", self, "play_speech")
+	game.connect("event_not_handled", self, "_debug_message")
+	game.connect("sound_played", self, "_play_sound")
+	game.connect("speech_played", self, "_play_speech")
+
 	# RedAlert.start_instance(scenario_number, build_level, "ALLY" or "USSR")
-	texture.start_instance(1, 10, "ALLY")
+	game.start_instance(1, 10, "ALLY")
 
 	game_palette_image.create(256, 1, false, Image.FORMAT_RGB8)
 	game_palette_texture = ImageTexture.new()

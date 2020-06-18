@@ -8,9 +8,20 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "",
+"class": "AudioStreamAud",
+"language": "NativeScript",
+"path": "res://bin/audio_stream_aud.gdns"
+}, {
+"base": "",
+"class": "RedAlert",
+"language": "NativeScript",
+"path": "res://bin/red_alert.gdns"
+} ]
 _global_script_class_icons={
-
+"AudioStreamAud": "",
+"RedAlert": ""
 }
 
 [application]

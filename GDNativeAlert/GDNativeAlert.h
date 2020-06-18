@@ -34,7 +34,6 @@ namespace godot {
 
         void _init();
 
-        void play_sound(String name, bool isSpeech, int x, int y);
         bool start_instance(int scenario_index, int build_level, String faction);
         bool advance_instance(uint64 player_id = 0);
         PoolByteArray get_palette();

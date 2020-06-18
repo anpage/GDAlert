@@ -5,3 +5,4 @@
 [resource]
 class_name = "GDNativeAlert"
 library = ExtResource( 1 )
+script_class_name = "RedAlert"

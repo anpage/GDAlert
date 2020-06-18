@@ -20,6 +20,12 @@
 
 using namespace godot;
 
+static float lepton_to_pixel(int map_cell, unsigned short in) {
+    int map_lepton = map_cell * 256;
+    in -= map_lepton;
+    return ((float)in / 256.0) * 24.0;
+}
+
 void GDNativeAlert::_register_methods() {
     register_method("start_instance", &GDNativeAlert::start_instance);
     register_method("advance_instance", &GDNativeAlert::advance_instance);
@@ -33,9 +39,20 @@ void GDNativeAlert::_register_methods() {
     register_method("get_cursor_name", &GDNativeAlert::get_cursor_name);
     register_method("get_game_objects", &GDNativeAlert::get_game_objects);
 
-    register_signal<GDNativeAlert>("event", "message", GODOT_VARIANT_TYPE_STRING);
-    register_signal<GDNativeAlert>("play_sound", "name", GODOT_VARIANT_TYPE_STRING, "x", GODOT_VARIANT_TYPE_INT, "y", GODOT_VARIANT_TYPE_INT);
-    register_signal<GDNativeAlert>("play_speech", "name", GODOT_VARIANT_TYPE_STRING);
+    register_signal<GDNativeAlert>("event_not_handled", "message", GODOT_VARIANT_TYPE_STRING);
+    register_signal<GDNativeAlert>("sound_played", "event", GODOT_VARIANT_TYPE_DICTIONARY);
+    register_signal<GDNativeAlert>("speech_played", "event", GODOT_VARIANT_TYPE_DICTIONARY);
+    register_signal<GDNativeAlert>("game_ended", "event", GODOT_VARIANT_TYPE_DICTIONARY);
+    register_signal<GDNativeAlert>("debug_printed", "message", GODOT_VARIANT_TYPE_STRING);
+    register_signal<GDNativeAlert>("movie_played", "event", GODOT_VARIANT_TYPE_DICTIONARY);
+    register_signal<GDNativeAlert>("message_received", "event", GODOT_VARIANT_TYPE_DICTIONARY);
+    register_signal<GDNativeAlert>("map_cell_updated", "event", GODOT_VARIANT_TYPE_DICTIONARY);
+    register_signal<GDNativeAlert>("achievement_triggered", "event", GODOT_VARIANT_TYPE_DICTIONARY);
+    register_signal<GDNativeAlert>("carryover_objects_stored", "event", GODOT_VARIANT_TYPE_DICTIONARY);
+    register_signal<GDNativeAlert>("special_weapon_targeted", "event", GODOT_VARIANT_TYPE_DICTIONARY);
+    register_signal<GDNativeAlert>("briefing_screen_triggered", "event", GODOT_VARIANT_TYPE_DICTIONARY);
+    register_signal<GDNativeAlert>("camera_centered", "position", GODOT_VARIANT_TYPE_VECTOR2);
+    register_signal<GDNativeAlert>("pinged", "position", GODOT_VARIANT_TYPE_VECTOR2);
 }
 
 GDNativeAlert::GDNativeAlert() {
@@ -104,17 +121,6 @@ void GDNativeAlert::_init() {
     CNC_Config(rules);
 }
 
-void GDNativeAlert::play_sound(String name, bool is_speech, int x = 0, int y = 0) {
-    if (is_speech || x < 1 || y < 1)
-    {
-        emit_signal("play_speech", name);
-    }
-    else
-    {
-        emit_signal("play_sound", name, x, y);
-    }
-}
-
 GDNativeAlert* GDNativeAlert::callback_instance;
 
 void GDNativeAlert::event_callback(const EventCallbackStruct& event) {
@@ -130,24 +136,70 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
     {
         case (CALLBACK_EVENT_INVALID):
         {
-            message = "Unhandled event: CALLBACK_EVENT_INVALID";
+            message = "CALLBACK_EVENT_INVALID";
         }
         break;
         case (CALLBACK_EVENT_SOUND_EFFECT):
         {
-            CNCMapDataStruct* state = new CNCMapDataStruct;
-            CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)state, sizeof(CNCMapDataStruct));
-            play_sound(event.SoundEffect.SoundEffectName, false, event.SoundEffect.PixelX - (state->OriginalMapCellX * 24.5), event.SoundEffect.PixelY - (state->OriginalMapCellY * 24.5));
-            delete state;
+            int x = event.SoundEffect.PixelX;
+            int y = event.SoundEffect.PixelY;
+
+            if (x > 0 && y > 0) {
+                CNCMapDataStruct* state = new CNCMapDataStruct;
+                CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)state, sizeof(CNCMapDataStruct));
+                x = event.SoundEffect.PixelX - (state->OriginalMapCellX * 24);
+                y = event.SoundEffect.PixelY - (state->OriginalMapCellY * 24);
+                delete state;
+            }
+
+            Dictionary event_sound_effect;
+            event_sound_effect["sfx_index"] = event.SoundEffect.SFXIndex;
+            event_sound_effect["variation"] = event.SoundEffect.Variation;
+            event_sound_effect["position"] = Vector2(x, y);
+            event_sound_effect["player_id"] = event.SoundEffect.PlayerID;
+            event_sound_effect["sound_effect_name"] = event.SoundEffect.SoundEffectName;
+            event_sound_effect["sound_effect_priority"] = event.SoundEffect.SoundEffectPriority;
+            event_sound_effect["sound_effect_context"] = event.SoundEffect.SoundEffectContext;
+
+            emit_signal("sound_played", event_sound_effect);
         }
         break;
         case (CALLBACK_EVENT_SPEECH):
         {
-            play_sound(event.Speech.SpeechName, true);
+            Dictionary event_speech;
+            event_speech["player_id"] = event.Speech.PlayerID;
+            event_speech["speech_index"] = event.Speech.SpeechIndex;
+            event_speech["speech_name"] = event.Speech.SpeechName;
+
+            emit_signal("speech_played", event_speech);
         }
         break;
         case (CALLBACK_EVENT_GAME_OVER):
-            message = "Unhandled event: CALLBACK_EVENT_GAME_OVER";
+        {
+            Dictionary event_game_over;
+            event_game_over["multiplayer"] = event.GameOver.Multiplayer;
+            event_game_over["player_wins"] = event.GameOver.PlayerWins;
+            event_game_over["movie_name"] = event.GameOver.MovieName;
+            event_game_over["movie_name_2"] = event.GameOver.MovieName2;
+            event_game_over["movie_name_3"] = event.GameOver.MovieName3;
+            event_game_over["movie_name_4"] = event.GameOver.MovieName4;
+            event_game_over["after_score_movie_name"] = event.GameOver.AfterScoreMovieName;
+            event_game_over["score"] = event.GameOver.Score;
+            event_game_over["leadership"] = event.GameOver.Leadership;
+            event_game_over["efficiency"] = event.GameOver.Efficiency;
+            event_game_over["category_total"] = event.GameOver.CategoryTotal;
+            event_game_over["nod_killed"] = event.GameOver.NODKilled;
+            event_game_over["gdi_killed"] = event.GameOver.GDIKilled;
+            event_game_over["civilians_killed"] = event.GameOver.CiviliansKilled;
+            event_game_over["nod_buildings_destroyed"] = event.GameOver.NODBuildingsDestroyed;
+            event_game_over["gdi_buildings_destroyed"] = event.GameOver.GDIBuildingsDestroyed;
+            event_game_over["civilian_buildings_destroyed"] = event.GameOver.CiviliansBuildingsDestroyed;
+            event_game_over["remaining_credits"] = event.GameOver.RemainingCredits;
+            event_game_over["sabotaged_structure_type"] = event.GameOver.SabotagedStructureType;
+            event_game_over["timer_remaining"] = event.GameOver.TimerRemaining;
+
+            emit_signal("game_ended", event_game_over);
+        }
         break;
         case (CALLBACK_EVENT_DEBUG_PRINT):
         {
@@ -157,51 +209,91 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
         break;
         case (CALLBACK_EVENT_MOVIE):
         {
-            String movie(event.Movie.MovieName);
-            message = "Play movie: " + movie;
+            Dictionary event_movie;
+            event_movie["movie_name"] = event.Movie.MovieName;
+            event_movie["theme"] = event.Movie.Theme;
+            event_movie["immediate"] = event.Movie.Immediate;
+
+            emit_signal("movie_played", event_movie);
         }
         break;
         case (CALLBACK_EVENT_MESSAGE):
         {
-            String msg(event.Message.Message);
-            message = "Incoming message: " + msg;
+            Dictionary event_message;
+            event_message["message"] = event.Message.Message;
+            event_message["timeout_seconds"] = event.Message.TimeoutSeconds;
+            event_message["message_type"] = event.Message.MessageType;
+            event_message["message_param"] = event.Message.MessageParam1;
+
+            emit_signal("message_received", event_message);
         }
         break;
         case (CALLBACK_EVENT_UPDATE_MAP_CELL):
-            message = "Unhandled event: CALLBACK_EVENT_UPDATE_MAP_CELL";
+        {
+            Dictionary event_update_map_cell;
+            event_update_map_cell["cell_position"] = Vector2(event.UpdateMapCell.CellX, event.UpdateMapCell.CellY);
+            event_update_map_cell["template_type_name"] = event.UpdateMapCell.TemplateTypeName;
+
+            emit_signal("map_cell_updated", event_update_map_cell);
+        }
         break;
         case (CALLBACK_EVENT_ACHIEVEMENT):
         {
-            String type(event.Achievement.AchievementType);
-            String reason(event.Achievement.AchievementReason);
-            message = String("Achievement unlocked: ") + type + String(", ") + reason;
+            Dictionary event_achievement;
+            event_achievement["achievement_type"] = event.Achievement.AchievementType;
+            event_achievement["achievement_reason"] = event.Achievement.AchievementReason;
+
+            emit_signal("achievement_triggered", event_achievement);
         }
         break;
         case (CALLBACK_EVENT_STORE_CARRYOVER_OBJECTS):
             message = "Unhandled event: CALLBACK_EVENT_STORE_CARRYOVER_OBJECTS";
         break;
         case (CALLBACK_EVENT_SPECIAL_WEAPON_TARGETTING):
-            message = "Unhandled event: CALLBACK_EVENT_SPECIAL_WEAPON_TARGETTING";
+        {
+            Dictionary event_special_weapon_targeting;
+            event_special_weapon_targeting["type"] = event.SpecialWeaponTargetting.Type;
+            event_special_weapon_targeting["id"] = event.SpecialWeaponTargetting.ID;
+            event_special_weapon_targeting["name"] = event.SpecialWeaponTargetting.Name;
+            event_special_weapon_targeting["weapon_type"] = event.SpecialWeaponTargetting.WeaponType;
+
+            emit_signal("special_weapon_targeted", event_special_weapon_targeting);
+        }
         break;
         case (CALLBACK_EVENT_BRIEFING_SCREEN):
             message = "Unhandled event: CALLBACK_EVENT_BRIEFING_SCREEN";
         break;
         case (CALLBACK_EVENT_CENTER_CAMERA):
-            message = "Unhandled event: CALLBACK_EVENT_CENTER_CAMERA";
+        {
+            CNCMapDataStruct* state = new CNCMapDataStruct;
+            CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)state, sizeof(CNCMapDataStruct));
+            int x = lepton_to_pixel(state->OriginalMapCellX, event.CenterCamera.CoordX);
+            int y = lepton_to_pixel(state->OriginalMapCellY, event.CenterCamera.CoordY);
+            delete state;
+
+            emit_signal("camera_centered", Vector2(x, y));
+        }
         break;
         case (CALLBACK_EVENT_PING):
-            message = "Unhandled event: CALLBACK_EVENT_PING";
+        {
+            CNCMapDataStruct* state = new CNCMapDataStruct;
+            CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)state, sizeof(CNCMapDataStruct));
+            int x = lepton_to_pixel(state->OriginalMapCellX, event.CenterCamera.CoordX);
+            int y = lepton_to_pixel(state->OriginalMapCellY, event.CenterCamera.CoordY);
+            delete state;
+
+            emit_signal("pinged", Vector2(x, y));
+        }
         break;
         default:
         {
-            String type(event.EventType);
-            message = String("Unknown event type: ") + type;
+            message = event.EventType;
         }
         break;
     }
 
     if (message.length()) {
-        emit_signal("event", message);
+        emit_signal("event_not_handled", message);
     }
 }
 
@@ -361,12 +453,6 @@ String GDNativeAlert::get_cursor_name(real_t x, real_t y) {
     default:
         return "MOUSE_NORMAL";
     }
-}
-
-static float lepton_to_pixel(int map_cell, unsigned short in) {
-    int map_lepton = map_cell * 256;
-    in -= map_lepton;
-    return ((float)in / 256.0) * 24.0;
 }
 
 Array GDNativeAlert::get_game_objects() {
