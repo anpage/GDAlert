@@ -451,7 +451,7 @@ Array GDNativeAlert::get_game_objects() {
         object_dict["size"] = Vector2(object->DimensionX, object->DimensionY);
 
         int top_left_x = object->CenterCoordX - (((object->DimensionX / PIXELS_PER_CELL) * LEPTONS_PER_CELL) / 2);
-        int top_left_y = object->CenterCoordY - (((object->DimensionX / PIXELS_PER_CELL) * LEPTONS_PER_CELL) / 2);
+        int top_left_y = object->CenterCoordY - (((object->DimensionY / PIXELS_PER_CELL) * LEPTONS_PER_CELL) / 2);
 
         int top_left_cell_x = top_left_x / LEPTONS_PER_CELL;
         int top_left_cell_y = top_left_y / LEPTONS_PER_CELL;
