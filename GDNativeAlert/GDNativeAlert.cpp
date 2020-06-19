@@ -539,9 +539,13 @@ String GDNativeAlert::get_cursor_name(int x, int y) {
 
         DllActionTypeEnum action = actions[map_cell_y * static_map_state_cache->OriginalMapCellWidth + map_cell_x];
 
-        if (action == DAT_NOMOVE) return "MOUSE_NO_MOVE";
-
-        return "MOUSE_CAN_MOVE";
+        switch (action)
+        {
+        case DAT_MOVE:
+            return "MOUSE_CAN_MOVE";
+        case DAT_NOMOVE:
+            return "MOUSE_NO_MOVE";
+        }
     }
 
     return "MOUSE_NORMAL";
