@@ -22,7 +22,7 @@ namespace godot {
 
         CNCPlayerInfoStruct* player_state_cache;
         CNCObjectListStruct* game_state_cache;
-        CNCMapDataStruct* map_state_cache;
+        CNCMapDataStruct* static_map_state_cache;
 
         unsigned char palette_cache[256][3];
 

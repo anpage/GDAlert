@@ -21,16 +21,16 @@
 using namespace godot;
 
 Vector2 GDNativeAlert::coord_to_pixel(unsigned short x, unsigned short y) {
-    int map_lepton_x = map_state_cache->OriginalMapCellX * 256;
-    int map_lepton_y = map_state_cache->OriginalMapCellY * 256;
+    int map_lepton_x = static_map_state_cache->OriginalMapCellX * LEPTONS_PER_CELL;
+    int map_lepton_y = static_map_state_cache->OriginalMapCellY * LEPTONS_PER_CELL;
     x -= map_lepton_x;
     y -= map_lepton_y;
     return Vector2(((float)x / 256.0) * 24.0, ((float)y / 256.0) * 24.0);
 }
 
 Vector2 GDNativeAlert::pixel_to_coord(int x, int y) {
-    int map_lepton_x = map_state_cache->OriginalMapCellX * 256;
-    int map_lepton_y = map_state_cache->OriginalMapCellY * 256;
+    int map_lepton_x = static_map_state_cache->OriginalMapCellX * LEPTONS_PER_CELL;
+    int map_lepton_y = static_map_state_cache->OriginalMapCellY * LEPTONS_PER_CELL;
     unsigned short lepton_x = (((x * LEPTONS_PER_CELL) + (PIXELS_PER_CELL / 2) - ((x < 0) ? (PIXELS_PER_CELL - 1) : 0)) / PIXELS_PER_CELL);
     unsigned short lepton_y = (((y * LEPTONS_PER_CELL) + (PIXELS_PER_CELL / 2) - ((y < 0) ? (PIXELS_PER_CELL - 1) : 0)) / PIXELS_PER_CELL);
     return Vector2(lepton_x + map_lepton_x, lepton_y + map_lepton_y);
@@ -84,7 +84,7 @@ GDNativeAlert::GDNativeAlert() {
 
     player_state_cache = (CNCPlayerInfoStruct*)new unsigned char[sizeof(CNCPlayerInfoStruct) + 33];
     game_state_cache = (CNCObjectListStruct*)new unsigned char[GAME_STATE_BUFFER_SIZE];
-    map_state_cache = new CNCMapDataStruct;
+    static_map_state_cache = new CNCMapDataStruct;
 }
 
 GDNativeAlert::~GDNativeAlert() {
@@ -92,7 +92,7 @@ GDNativeAlert::~GDNativeAlert() {
 
     delete[] player_state_cache;
     delete[] game_state_cache;
-    delete map_state_cache;
+    delete static_map_state_cache;
 }
 
 void GDNativeAlert::_init() {
@@ -332,8 +332,8 @@ bool GDNativeAlert::start_instance(int scenario_index, int build_level, String f
         if (cached_game_state == false)
             return false;
 
-        bool cached_map_state = CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)map_state_cache, sizeof(CNCMapDataStruct));
-        if (cached_map_state == false)
+        bool cached_static_map_state = CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)static_map_state_cache, sizeof(CNCMapDataStruct));
+        if (cached_static_map_state == false)
             return false;
 
         bool cached_player_state = CNC_Get_Game_State(GAME_STATE_PLAYER_INFO, 0, (unsigned char*)player_state_cache, sizeof(CNCPlayerInfoStruct) + 33);
@@ -359,8 +359,8 @@ bool GDNativeAlert::advance_instance(uint64 player_id) {
         if (cached_game_state == false)
             return false;
 
-        bool cached_map_state = CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)map_state_cache, sizeof(CNCMapDataStruct));
-        if (cached_map_state == false)
+        bool cached_static_map_state = CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)static_map_state_cache, sizeof(CNCMapDataStruct));
+        if (cached_static_map_state == false)
             return false;
 
         bool cached_player_state = CNC_Get_Game_State(GAME_STATE_PLAYER_INFO, 0, (unsigned char*)player_state_cache, sizeof(CNCPlayerInfoStruct) + 33);
@@ -446,8 +446,8 @@ Array GDNativeAlert::get_game_objects() {
         Dictionary object_dict;
 
         object_dict["position"] = coord_to_pixel(object->CenterCoordX, object->CenterCoordY);
-        object_dict["cell_position"] = Vector2(object->CellX - map_state_cache->OriginalMapCellX,
-                                               object->CellY - map_state_cache->OriginalMapCellY);
+        object_dict["cell_position"] = Vector2(object->CellX - static_map_state_cache->OriginalMapCellX,
+                                               object->CellY - static_map_state_cache->OriginalMapCellY);
         object_dict["size"] = Vector2(object->DimensionX, object->DimensionY);
 
         int top_left_x = object->CenterCoordX - (((object->DimensionX / PIXELS_PER_CELL) * LEPTONS_PER_CELL) / 2);
@@ -462,8 +462,8 @@ Array GDNativeAlert::get_game_objects() {
             short cell_offset = object->OccupyList[i];
             int cell_offset_x = cell_offset % MAP_MAX_CELL_WIDTH;
             int cell_offset_y = cell_offset / MAP_MAX_CELL_WIDTH;
-            int cell_new_x = (top_left_cell_x + cell_offset_x) - map_state_cache->OriginalMapCellX;
-            int cell_new_y = (top_left_cell_y + cell_offset_y) - map_state_cache->OriginalMapCellY;
+            int cell_new_x = (top_left_cell_x + cell_offset_x) - static_map_state_cache->OriginalMapCellX;
+            int cell_new_y = (top_left_cell_y + cell_offset_y) - static_map_state_cache->OriginalMapCellY;
             occupy_list.push_front(Vector2(cell_new_x * PIXELS_PER_CELL, cell_new_y * PIXELS_PER_CELL));
         }
 
@@ -484,56 +484,55 @@ Array GDNativeAlert::get_game_objects() {
 
 String GDNativeAlert::get_cursor_name(int x, int y) {
     CNCObjectStruct* nearest_object = get_nearest_object(x, y);
-    if (nearest_object != nullptr)
-    {
-        DllActionTypeEnum action = nearest_object->ActionWithSelected[player_state_cache->House];
-
-        switch (action)
-        {
-        case DAT_ATTACK:
-            return "MOUSE_CAN_ATTACK";
-        case DAT_ATTACK_OUT_OF_RANGE:
-            return "MOUSE_STAY_ATTACK";
-        case DAT_SABOTAGE:
-            return "MOUSE_DEMOLITIONS";
-        case DAT_ENTER:
-            return "MOUSE_ENTER";
-        case DAT_SELECT:
-            return "MOUSE_CAN_SELECT";
-        }
-    }
 
     if (player_state_cache->SelectedID == -1)
     {
-        String mouse = "MOUSE_NORMAL";
-
-        if (nearest_object != nullptr)
+        // Player doesn't have objects selected
+        if (nearest_object != nullptr && nearest_object->IsSelectable)
         {
-            mouse = "MOUSE_CAN_SELECT";
+            return "MOUSE_CAN_SELECT";
         }
 
-        return mouse;
-    }
-
-    unsigned int action_count = player_state_cache->ActionWithSelectedCount;
-
-    DllActionTypeEnum* actions = new DllActionTypeEnum[action_count];
-    actions = player_state_cache->ActionWithSelected;
-
-    int map_cell_x = (x / 24);
-    int map_cell_y = (y / 24);
-
-    DllActionTypeEnum action = actions[map_cell_y * map_state_cache->OriginalMapCellWidth + map_cell_x];
-
-    switch (action)
-    {
-    case DAT_MOVE:
-        return "MOUSE_CAN_MOVE";
-    case DAT_NOMOVE:
-        return "MOUSE_NO_MOVE";
-    default:
         return "MOUSE_NORMAL";
     }
+    else {
+        if (nearest_object != nullptr)
+        {
+            DllActionTypeEnum action = nearest_object->ActionWithSelected[player_state_cache->House];
+
+            switch (action)
+            {
+            case DAT_ATTACK:
+                return "MOUSE_CAN_ATTACK";
+            case DAT_ATTACK_OUT_OF_RANGE:
+                return "MOUSE_STAY_ATTACK";
+            case DAT_SABOTAGE:
+                return "MOUSE_DEMOLITIONS";
+            case DAT_ENTER:
+                return "MOUSE_ENTER";
+            case DAT_SELECT:
+                return "MOUSE_CAN_SELECT";
+            case DAT_NOMOVE:
+                return "MOUSE_NO_MOVE";
+            }
+        }
+
+        unsigned int action_count = player_state_cache->ActionWithSelectedCount;
+
+        DllActionTypeEnum* actions = new DllActionTypeEnum[action_count];
+        actions = player_state_cache->ActionWithSelected;
+
+        int map_cell_x = (x / 24);
+        int map_cell_y = (y / 24);
+
+        DllActionTypeEnum action = actions[map_cell_y * static_map_state_cache->OriginalMapCellWidth + map_cell_x];
+
+        if (action == DAT_NOMOVE) return "MOUSE_NO_MOVE";
+
+        return "MOUSE_CAN_MOVE";
+    }
+
+    return "MOUSE_NORMAL";
 }
 
 CNCObjectStruct* GDNativeAlert::get_nearest_object(int x, int y) {
@@ -545,7 +544,6 @@ CNCObjectStruct* GDNativeAlert::get_nearest_object(int x, int y) {
     int nearest_object_distance;
     for (int i = 0; i < game_state_cache->Count; i++) {
         CNCObjectStruct* object = game_state_cache->Objects + i;
-        if (!object->IsSelectable) continue;
 
         if (object->Type == BUILDING || object->Type == BUILDING_TYPE) {
             unsigned short top_left_x = object->CenterCoordX - (((object->DimensionX / 24) * 256) / 2);
