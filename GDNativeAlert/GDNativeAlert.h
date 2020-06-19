@@ -30,7 +30,7 @@ namespace godot {
         static void event_callback(const EventCallbackStruct& event);
         void handle_event(const EventCallbackStruct& event);
 
-        static int distance(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2);
+        static int coord_distance(Vector2 coord_1, Vector2 coord_2);
 
         Image* game_image;
         PoolByteArray game_buffer_pba;
@@ -54,9 +54,11 @@ namespace godot {
         void handle_right_mouse_down(unsigned int x, unsigned int y);
         void handle_mouse_area(unsigned int x1, unsigned int y1, unsigned int x2, unsigned int y2);
         void handle_mouse_motion(unsigned int x, unsigned int y);
-        String get_cursor_name(real_t x, real_t y);
+        String get_cursor_name(int x, int y);
         Array get_game_objects();
-        CNCObjectStruct* get_nearest_object(real_t x, real_t y);
+        CNCObjectStruct* get_nearest_object(int x, int y);
+        Vector2 coord_to_pixel(unsigned short x, unsigned short y);
+        Vector2 pixel_to_coord(int x, int y);
     };
 
 }

@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://debug_assets/framerate_label.gd" type="Script" id=1]
+[ext_resource path="res://debug_assets/debug_info_label.gd" type="Script" id=1]
 [ext_resource path="res://in_game/tac_view/tac_view.tscn" type="PackedScene" id=2]
 [ext_resource path="res://music/big_foot.tres" type="AudioStream" id=3]
 
@@ -20,11 +20,11 @@ __meta__ = {
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
-[node name="FramerateLabel" type="RichTextLabel" parent="HUD"]
+[node name="DebugInfoLabel" type="RichTextLabel" parent="HUD"]
 margin_left = 10.0
 margin_top = 7.0
-margin_right = 137.0
-margin_bottom = 31.0
+margin_right = 198.0
+margin_bottom = 55.0
 custom_styles/normal = SubResource( 1 )
 script = ExtResource( 1 )
 __meta__ = {
@@ -35,3 +35,5 @@ __meta__ = {
 stream = ExtResource( 3 )
 volume_db = -10.0
 autoplay = true
+[connection signal="mouse_clicked" from="TacView" to="HUD/DebugInfoLabel" method="_on_mouse_clicked"]
+[connection signal="mouse_moved" from="TacView" to="HUD/DebugInfoLabel" method="_on_mouse_moved"]

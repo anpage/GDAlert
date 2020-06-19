@@ -4,6 +4,7 @@ extends TextureRect
 signal started_scrolling(pos)
 signal stopped_scrolling()
 signal mouse_moved(pos)
+signal mouse_clicked(pos)
 
 export var game_speed: float = 1.0
 
@@ -67,9 +68,10 @@ func _ready():
 
 	texture = RedAlert.new() as ImageTexture
 	texture.create_from_image(game_image, 0)
-	texture.connect("event_not_handled", self, "_debug_message")
-	texture.connect("sound_played", self, "_play_sound")
-	texture.connect("speech_played", self, "_play_speech")
+
+	var _error = texture.connect("event_not_handled", self, "_debug_message")
+	_error = texture.connect("sound_played", self, "_play_sound")
+	_error = texture.connect("speech_played", self, "_play_speech")
 
 	# RedAlert.start_instance(scenario_number, build_level, "ALLY" or "USSR")
 	texture.start_instance(1, 10, "ALLY")
@@ -105,6 +107,7 @@ func _gui_input(event):
 			if !event.pressed:
 				if !has_selected:
 					texture.handle_left_mouse_up(x, y)
+					emit_signal("mouse_clicked", Vector2(x, y))
 				else:
 					has_selected = false
 		if event.button_index == BUTTON_RIGHT:

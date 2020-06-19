@@ -20,10 +20,34 @@
 
 using namespace godot;
 
-static float lepton_to_pixel(int map_cell, unsigned short in) {
-    int map_lepton = map_cell * 256;
-    in -= map_lepton;
-    return ((float)in / 256.0) * 24.0;
+Vector2 GDNativeAlert::coord_to_pixel(unsigned short x, unsigned short y) {
+    int map_lepton_x = map_state_cache->OriginalMapCellX * 256;
+    int map_lepton_y = map_state_cache->OriginalMapCellY * 256;
+    x -= map_lepton_x;
+    y -= map_lepton_y;
+    return Vector2(((float)x / 256.0) * 24.0, ((float)y / 256.0) * 24.0);
+}
+
+Vector2 GDNativeAlert::pixel_to_coord(int x, int y) {
+    int map_lepton_x = map_state_cache->OriginalMapCellX * 256;
+    int map_lepton_y = map_state_cache->OriginalMapCellY * 256;
+    unsigned short lepton_x = (((x * LEPTONS_PER_CELL) + (PIXELS_PER_CELL / 2) - ((x < 0) ? (PIXELS_PER_CELL - 1) : 0)) / PIXELS_PER_CELL);
+    unsigned short lepton_y = (((y * LEPTONS_PER_CELL) + (PIXELS_PER_CELL / 2) - ((y < 0) ? (PIXELS_PER_CELL - 1) : 0)) / PIXELS_PER_CELL);
+    return Vector2(lepton_x + map_lepton_x, lepton_y + map_lepton_y);
+}
+
+int GDNativeAlert::coord_distance(Vector2 coord_1, Vector2 coord_2)
+{
+    int	diff1, diff2;
+
+    diff1 = coord_1.y - coord_2.y;
+    if (diff1 < 0) diff1 = -diff1;
+    diff2 = coord_1.x - coord_2.x;
+    if (diff2 < 0) diff2 = -diff2;
+    if (diff1 > diff2) {
+        return(diff1 + ((unsigned)diff2 / 2));
+    }
+    return(diff2 + ((unsigned)diff1 / 2));
 }
 
 void GDNativeAlert::_register_methods() {
@@ -273,24 +297,14 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
         break;
         case (CALLBACK_EVENT_CENTER_CAMERA):
         {
-            CNCMapDataStruct* state = new CNCMapDataStruct;
-            CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)state, sizeof(CNCMapDataStruct));
-            int x = lepton_to_pixel(state->OriginalMapCellX, event.CenterCamera.CoordX);
-            int y = lepton_to_pixel(state->OriginalMapCellY, event.CenterCamera.CoordY);
-            delete state;
-
-            emit_signal("camera_centered", Vector2(x, y));
+            Vector2 pixel_position = coord_to_pixel(event.CenterCamera.CoordX, event.CenterCamera.CoordY);
+            emit_signal("camera_centered", pixel_position);
         }
         break;
         case (CALLBACK_EVENT_PING):
         {
-            CNCMapDataStruct* state = new CNCMapDataStruct;
-            CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)state, sizeof(CNCMapDataStruct));
-            int x = lepton_to_pixel(state->OriginalMapCellX, event.CenterCamera.CoordX);
-            int y = lepton_to_pixel(state->OriginalMapCellY, event.CenterCamera.CoordY);
-            delete state;
-
-            emit_signal("pinged", Vector2(x, y));
+            Vector2 pixel_position = coord_to_pixel(event.Ping.CoordX, event.Ping.CoordY);
+            emit_signal("pinged", pixel_position);
         }
         break;
         default:
@@ -431,11 +445,13 @@ Array GDNativeAlert::get_game_objects() {
 
         Dictionary object_dict;
 
-        object_dict["position"] = Vector2(object->PositionX, object->PositionY);
+        object_dict["position"] = coord_to_pixel(object->CenterCoordX, object->CenterCoordY);
+        object_dict["cell_position"] = Vector2(object->CellX - map_state_cache->OriginalMapCellX,
+                                               object->CellY - map_state_cache->OriginalMapCellY);
         object_dict["size"] = Vector2(object->DimensionX, object->DimensionY);
 
-        int top_left_x = object->CenterCoordX - (object->Width / 2);
-        int top_left_y = object->CenterCoordY - (object->Height / 2);
+        int top_left_x = object->CenterCoordX - (((object->DimensionX / PIXELS_PER_CELL) * LEPTONS_PER_CELL) / 2);
+        int top_left_y = object->CenterCoordY - (((object->DimensionX / PIXELS_PER_CELL) * LEPTONS_PER_CELL) / 2);
 
         int top_left_cell_x = top_left_x / LEPTONS_PER_CELL;
         int top_left_cell_y = top_left_y / LEPTONS_PER_CELL;
@@ -453,14 +469,21 @@ Array GDNativeAlert::get_game_objects() {
 
         object_dict["occupied_cells"] = occupy_list;
 
+        if (object->Type == BUILDING || object->Type == BUILDING_TYPE) {
+            object_dict["type"] = "BUILDING";
+        }
+        else {
+            object_dict["type"] = "UNIT";
+        }
+
         objects.push_front(object_dict);
     }
 
     return objects;
 }
 
-String GDNativeAlert::get_cursor_name(real_t x, real_t y) {
-    CNCObjectStruct* nearest_object = get_nearest_object((map_state_cache->OriginalMapCellX * 24) + x, (map_state_cache->OriginalMapCellY * 24) + y);
+String GDNativeAlert::get_cursor_name(int x, int y) {
+    CNCObjectStruct* nearest_object = get_nearest_object(x, y);
     if (nearest_object != nullptr)
     {
         DllActionTypeEnum action = nearest_object->ActionWithSelected[player_state_cache->House];
@@ -513,23 +536,10 @@ String GDNativeAlert::get_cursor_name(real_t x, real_t y) {
     }
 }
 
-int GDNativeAlert::distance(unsigned short x1, unsigned short y1, unsigned short x2, unsigned short y2)
-{
-    int	diff1, diff2;
-
-    diff1 = y1 - y2;
-    if (diff1 < 0) diff1 = -diff1;
-    diff2 = x1 - x2;
-    if (diff2 < 0) diff2 = -diff2;
-    if (diff1 > diff2) {
-        return(diff1 + ((unsigned)diff2 / 2));
-    }
-    return(diff2 + ((unsigned)diff1 / 2));
-}
-
-CNCObjectStruct* GDNativeAlert::get_nearest_object(real_t x, real_t y) {
-    int lepton_position_x = (x / 24) * 256;
-    int lepton_position_y = (y / 24) * 256;
+CNCObjectStruct* GDNativeAlert::get_nearest_object(int x, int y) {
+    Vector2 coord = pixel_to_coord(x, y);
+    unsigned short lepton_position_x = coord.x;
+    unsigned short lepton_position_y = coord.y;
 
     CNCObjectStruct* nearest_object = nullptr;
     int nearest_object_distance;
@@ -538,11 +548,11 @@ CNCObjectStruct* GDNativeAlert::get_nearest_object(real_t x, real_t y) {
         if (!object->IsSelectable) continue;
 
         if (object->Type == BUILDING || object->Type == BUILDING_TYPE) {
-            int top_left_x = object->CenterCoordX - (((object->DimensionX / 24) * 256) / 2);
-            int top_left_y = object->CenterCoordY - (((object->DimensionY / 24) * 256) / 2);
+            unsigned short top_left_x = object->CenterCoordX - (((object->DimensionX / 24) * 256) / 2);
+            unsigned short top_left_y = object->CenterCoordY - (((object->DimensionY / 24) * 256) / 2);
 
-            int top_left_cell_x = top_left_x / 256;
-            int top_left_cell_y = top_left_y / 256;
+            unsigned short top_left_cell_x = top_left_x / 256;
+            unsigned short top_left_cell_y = top_left_y / 256;
 
             for (int i = 0; i < object->OccupyListLength; i++) {
                 short cell_offset = object->OccupyList[i];
@@ -551,10 +561,10 @@ CNCObjectStruct* GDNativeAlert::get_nearest_object(real_t x, real_t y) {
                 int cell_new_x = (top_left_cell_x + cell_offset_x);
                 int cell_new_y = (top_left_cell_y + cell_offset_y);
 
-                int cell_x = (cell_new_x * 256) + 128;
-                int cell_y = (cell_new_y * 256) + 128;
-                int distance = GDNativeAlert::distance(cell_x, cell_y, lepton_position_x, lepton_position_y);
-                if (distance < 192) {
+                unsigned short cell_x = (cell_new_x * 256) + 128;
+                unsigned short cell_y = (cell_new_y * 256) + 128;
+                int distance = GDNativeAlert::coord_distance(Vector2(cell_x, cell_y), coord);
+                if (distance <= 0xC0) {
                     if (nearest_object != nullptr) {
                         if (distance < nearest_object_distance) {
                             nearest_object = object;
@@ -569,8 +579,8 @@ CNCObjectStruct* GDNativeAlert::get_nearest_object(real_t x, real_t y) {
             }
         }
         else {
-            int distance = GDNativeAlert::distance(object->CenterCoordX, object->CenterCoordY, lepton_position_x, lepton_position_y);
-            if (distance < 192) {
+            int distance = GDNativeAlert::coord_distance(Vector2(object->CenterCoordX, object->CenterCoordY), coord);
+            if (distance <= 0xC0) {
                 if (nearest_object != nullptr) {
                     if (distance < nearest_object_distance) {
                         nearest_object = object;
