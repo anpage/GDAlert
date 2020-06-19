@@ -23,8 +23,9 @@ func draw_things(things):
 			add_child(shape)
 
 		for cell in thing["occupied_cells"]:
+			var position: Vector2 = cell * 24
 			var shape = CollisionShape2D.new()
 			shape.shape = CircleShape2D.new()
 			shape.shape.radius = 18
-			shape.position = Vector2(cell.x + 12, cell.y + 12)
+			shape.position = Vector2(position.x + 12, position.y + 12)
 			add_child(shape)
