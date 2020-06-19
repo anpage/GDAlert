@@ -50,6 +50,33 @@ int GDNativeAlert::coord_distance(Vector2 coord_1, Vector2 coord_2)
     return(diff2 + ((unsigned)diff1 / 2));
 }
 
+Array GDNativeAlert::get_building_occupied_cells(CNCObjectStruct* building) {
+    int top_left_x = building->CenterCoordX - (((building->DimensionX / PIXELS_PER_CELL) * LEPTONS_PER_CELL) / 2);
+    int top_left_y = building->CenterCoordY - (((building->DimensionY / PIXELS_PER_CELL) * LEPTONS_PER_CELL) / 2);
+
+    int top_left_cell_x = top_left_x / LEPTONS_PER_CELL;
+    int top_left_cell_y = top_left_y / LEPTONS_PER_CELL;
+
+    Array occupy_list;
+
+    for (int i = 0; i < building->OccupyListLength; i++) {
+        short cell_offset = building->OccupyList[i];
+        int cell_offset_x = cell_offset % MAP_MAX_CELL_WIDTH;
+        int cell_offset_y = cell_offset / MAP_MAX_CELL_WIDTH;
+        int cell_new_x = (top_left_cell_x + cell_offset_x) - static_map_state_cache->OriginalMapCellX;
+        int cell_new_y = (top_left_cell_y + cell_offset_y) - static_map_state_cache->OriginalMapCellY;
+        occupy_list.push_front(Vector2(cell_new_x, cell_new_y));
+    }
+
+    return occupy_list;
+}
+
+bool GDNativeAlert::get_cell_is_shrouded(int x, int y) {
+    int cell_index = y * static_map_state_cache->MapCellWidth + x;
+    CNCShroudEntryStruct shroud_state = shroud_state_cache->Entries[cell_index];
+    return !shroud_state.IsVisible;
+}
+
 void GDNativeAlert::_register_methods() {
     register_property<GDNativeAlert, uint64>("player_id", &GDNativeAlert::player_id, 0);
 
@@ -88,6 +115,7 @@ GDNativeAlert::GDNativeAlert() {
     game_state_cache = (CNCObjectListStruct*)new unsigned char[GAME_STATE_BUFFER_SIZE];
     static_map_state_cache = new CNCMapDataStruct;
     dynamic_map_state_cache = (CNCDynamicMapStruct*)new unsigned char[GAME_STATE_BUFFER_SIZE];
+    shroud_state_cache = (CNCShroudStruct*)new unsigned char[GAME_STATE_BUFFER_SIZE];
 }
 
 GDNativeAlert::~GDNativeAlert() {
@@ -97,6 +125,7 @@ GDNativeAlert::~GDNativeAlert() {
     delete[] game_state_cache;
     delete static_map_state_cache;
     delete[] dynamic_map_state_cache;
+    delete[] shroud_state_cache;
 }
 
 void GDNativeAlert::_init() {
@@ -340,6 +369,10 @@ bool GDNativeAlert::cache_game_state() {
     if (cached_dynamic_map_state == false)
         return false;
 
+    bool cached_shroud_state = CNC_Get_Game_State(GAME_STATE_SHROUD, player_id, (unsigned char*)shroud_state_cache, GAME_STATE_BUFFER_SIZE);
+    if (cached_shroud_state == false)
+        return false;
+
     if (player_id == 0) {
         bool cached_palette = CNC_Get_Palette((unsigned char(&)[256][3])palette_cache);
         if (cached_palette == false)
@@ -446,24 +479,7 @@ Array GDNativeAlert::get_game_objects() {
                                                object->CellY - static_map_state_cache->OriginalMapCellY);
         object_dict["size"] = Vector2(object->DimensionX, object->DimensionY);
 
-        int top_left_x = object->CenterCoordX - (((object->DimensionX / PIXELS_PER_CELL) * LEPTONS_PER_CELL) / 2);
-        int top_left_y = object->CenterCoordY - (((object->DimensionY / PIXELS_PER_CELL) * LEPTONS_PER_CELL) / 2);
-
-        int top_left_cell_x = top_left_x / LEPTONS_PER_CELL;
-        int top_left_cell_y = top_left_y / LEPTONS_PER_CELL;
-
-        Array occupy_list;
-
-        for (int i = 0; i < object->OccupyListLength; i++) {
-            short cell_offset = object->OccupyList[i];
-            int cell_offset_x = cell_offset % MAP_MAX_CELL_WIDTH;
-            int cell_offset_y = cell_offset / MAP_MAX_CELL_WIDTH;
-            int cell_new_x = (top_left_cell_x + cell_offset_x) - static_map_state_cache->OriginalMapCellX;
-            int cell_new_y = (top_left_cell_y + cell_offset_y) - static_map_state_cache->OriginalMapCellY;
-            occupy_list.push_front(Vector2(cell_new_x * PIXELS_PER_CELL, cell_new_y * PIXELS_PER_CELL));
-        }
-
-        object_dict["occupied_cells"] = occupy_list;
+        object_dict["occupied_cells"] = get_building_occupied_cells(object);
 
         if (object->Type == BUILDING || object->Type == BUILDING_TYPE) {
             object_dict["type"] = "BUILDING";
@@ -541,22 +557,22 @@ CNCObjectStruct* GDNativeAlert::get_nearest_object(int x, int y) {
     for (int i = 0; i < game_state_cache->Count; i++) {
         CNCObjectStruct* object = game_state_cache->Objects + i;
 
+        // Ignore objects that aren't visible
+        if (!(object->VisibleFlags & (1 << player_state_cache->House))) continue;
+
         if (object->Type == BUILDING || object->Type == BUILDING_TYPE) {
-            unsigned short top_left_x = object->CenterCoordX - (((object->DimensionX / 24) * 256) / 2);
-            unsigned short top_left_y = object->CenterCoordY - (((object->DimensionY / 24) * 256) / 2);
+            Array occupied_cells = get_building_occupied_cells(object);
 
-            unsigned short top_left_cell_x = top_left_x / 256;
-            unsigned short top_left_cell_y = top_left_y / 256;
+            for (int i = 0; i < occupied_cells.size(); i++) {
+                Vector2 cell = occupied_cells[i];
 
-            for (int i = 0; i < object->OccupyListLength; i++) {
-                short cell_offset = object->OccupyList[i];
-                int cell_offset_x = cell_offset % 128;
-                int cell_offset_y = cell_offset / 128;
-                int cell_new_x = (top_left_cell_x + cell_offset_x);
-                int cell_new_y = (top_left_cell_y + cell_offset_y);
+                if (get_cell_is_shrouded(cell.x, cell.y)) continue;
 
-                unsigned short cell_x = (cell_new_x * 256) + 128;
-                unsigned short cell_y = (cell_new_y * 256) + 128;
+                cell.x += static_map_state_cache->OriginalMapCellX;
+                cell.y += static_map_state_cache->OriginalMapCellY;
+
+                unsigned short cell_x = (cell.x * LEPTONS_PER_CELL) + (LEPTONS_PER_CELL / 2);
+                unsigned short cell_y = (cell.y * LEPTONS_PER_CELL) + (LEPTONS_PER_CELL / 2);
                 int distance = GDNativeAlert::coord_distance(Vector2(cell_x, cell_y), coord);
                 if (distance <= 0xC0) {
                     if (nearest_object != nullptr) {
@@ -573,6 +589,11 @@ CNCObjectStruct* GDNativeAlert::get_nearest_object(int x, int y) {
             }
         }
         else {
+            int cell_x = object->CellX - static_map_state_cache->MapCellX;
+            int cell_y = object->CellY - static_map_state_cache->MapCellY;
+
+            if (get_cell_is_shrouded(cell_x, cell_y)) continue;
+
             int distance = GDNativeAlert::coord_distance(Vector2(object->CenterCoordX, object->CenterCoordY), coord);
             if (distance <= 0xC0) {
                 if (nearest_object != nullptr) {

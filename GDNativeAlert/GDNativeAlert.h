@@ -26,6 +26,7 @@ namespace godot {
         CNCObjectListStruct* game_state_cache;
         CNCMapDataStruct* static_map_state_cache;
         CNCDynamicMapStruct* dynamic_map_state_cache;
+        CNCShroudStruct* shroud_state_cache;
 
         unsigned char palette_cache[256][3];
 
@@ -37,6 +38,8 @@ namespace godot {
         Vector2 coord_to_pixel(unsigned short x, unsigned short y);
         Vector2 pixel_to_coord(int x, int y);
         static int coord_distance(Vector2 coord_1, Vector2 coord_2);
+        Array get_building_occupied_cells(CNCObjectStruct* building);
+        bool get_cell_is_shrouded(int x, int y);
 
         bool cache_game_state();
         CNCObjectStruct* get_nearest_object(int x, int y);
