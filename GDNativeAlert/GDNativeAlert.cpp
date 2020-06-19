@@ -51,6 +51,8 @@ int GDNativeAlert::coord_distance(Vector2 coord_1, Vector2 coord_2)
 }
 
 void GDNativeAlert::_register_methods() {
+    register_property<GDNativeAlert, uint64>("player_id", &GDNativeAlert::player_id, 0);
+
     register_method("start_instance", &GDNativeAlert::start_instance);
     register_method("advance_instance", &GDNativeAlert::advance_instance);
     register_method("get_palette", &GDNativeAlert::get_palette);
@@ -85,6 +87,7 @@ GDNativeAlert::GDNativeAlert() {
     player_state_cache = (CNCPlayerInfoStruct*)new unsigned char[sizeof(CNCPlayerInfoStruct) + 33];
     game_state_cache = (CNCObjectListStruct*)new unsigned char[GAME_STATE_BUFFER_SIZE];
     static_map_state_cache = new CNCMapDataStruct;
+    dynamic_map_state_cache = (CNCDynamicMapStruct*)new unsigned char[GAME_STATE_BUFFER_SIZE];
 }
 
 GDNativeAlert::~GDNativeAlert() {
@@ -93,6 +96,7 @@ GDNativeAlert::~GDNativeAlert() {
     delete[] player_state_cache;
     delete[] game_state_cache;
     delete static_map_state_cache;
+    delete[] dynamic_map_state_cache;
 }
 
 void GDNativeAlert::_init() {
@@ -319,6 +323,32 @@ void GDNativeAlert::handle_event(const EventCallbackStruct& event) {
     }
 }
 
+bool GDNativeAlert::cache_game_state() {
+    bool cached_game_state = CNC_Get_Game_State(GAME_STATE_LAYERS, player_id, (unsigned char*)game_state_cache, GAME_STATE_BUFFER_SIZE);
+    if (cached_game_state == false)
+        return false;
+
+    bool cached_static_map_state = CNC_Get_Game_State(GAME_STATE_STATIC_MAP, player_id, (unsigned char*)static_map_state_cache, sizeof(CNCMapDataStruct));
+    if (cached_static_map_state == false)
+        return false;
+
+    bool cached_player_state = CNC_Get_Game_State(GAME_STATE_PLAYER_INFO, player_id, (unsigned char*)player_state_cache, sizeof(CNCPlayerInfoStruct) + 33);
+    if (cached_player_state == false)
+        return false;
+
+    bool cached_dynamic_map_state = CNC_Get_Game_State(GAME_STATE_DYNAMIC_MAP, player_id, (unsigned char*)dynamic_map_state_cache, GAME_STATE_BUFFER_SIZE);
+    if (cached_dynamic_map_state == false)
+        return false;
+
+    if (player_id == 0) {
+        bool cached_palette = CNC_Get_Palette((unsigned char(&)[256][3])palette_cache);
+        if (cached_palette == false)
+            return false;
+    }
+
+    return true;
+}
+
 bool GDNativeAlert::start_instance(int scenario_index, int build_level, String faction) {
     game_buffer_pba.resize(3072 * 3072);
 
@@ -326,53 +356,17 @@ bool GDNativeAlert::start_instance(int scenario_index, int build_level, String f
     bool instance_started = CNC_Start_Instance(scenario_index, build_level, faction_cstr, "GAME_NORMAL", "", NULL, NULL);
     if (faction_cstr != nullptr) godot::api->godot_free(faction_cstr);
 
-    // Cache game states
-    if (instance_started) {
-        bool cached_game_state = CNC_Get_Game_State(GAME_STATE_LAYERS, 0, (unsigned char*)game_state_cache, GAME_STATE_BUFFER_SIZE);
-        if (cached_game_state == false)
-            return false;
-
-        bool cached_static_map_state = CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)static_map_state_cache, sizeof(CNCMapDataStruct));
-        if (cached_static_map_state == false)
-            return false;
-
-        bool cached_player_state = CNC_Get_Game_State(GAME_STATE_PLAYER_INFO, 0, (unsigned char*)player_state_cache, sizeof(CNCPlayerInfoStruct) + 33);
-        if (cached_player_state == false)
-            return false;
-
-        bool cached_palette = CNC_Get_Palette((unsigned char(&)[256][3])palette_cache);
-        if (cached_palette == false)
-            return false;
-
-        return true;
-    }
+    if (instance_started)
+        return cache_game_state();
 
     return false;
 }
 
-bool GDNativeAlert::advance_instance(uint64 player_id) {
+bool GDNativeAlert::advance_instance() {
     bool instance_advanced = CNC_Advance_Instance(player_id);
 
-    // Cache game states
-    if (instance_advanced) {
-        bool cached_game_state = CNC_Get_Game_State(GAME_STATE_LAYERS, 0, (unsigned char*)game_state_cache, GAME_STATE_BUFFER_SIZE);
-        if (cached_game_state == false)
-            return false;
-
-        bool cached_static_map_state = CNC_Get_Game_State(GAME_STATE_STATIC_MAP, 0, (unsigned char*)static_map_state_cache, sizeof(CNCMapDataStruct));
-        if (cached_static_map_state == false)
-            return false;
-
-        bool cached_player_state = CNC_Get_Game_State(GAME_STATE_PLAYER_INFO, 0, (unsigned char*)player_state_cache, sizeof(CNCPlayerInfoStruct) + 33);
-        if (cached_player_state == false)
-            return false;
-
-        bool cached_palette = CNC_Get_Palette((unsigned char(&)[256][3])palette_cache);
-        if (cached_palette == false)
-            return false;
-
-        return true;
-    }
+    if (instance_advanced)
+        return cache_game_state();
 
     return false;
 }
@@ -389,6 +383,8 @@ PoolByteArray GDNativeAlert::get_palette() {
 }
 
 bool GDNativeAlert::get_visible_page() {
+    if (player_id != 0) return false;
+
     unsigned int width = 0;
     unsigned int height = 0;
 
