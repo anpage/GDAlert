@@ -11,7 +11,7 @@ func _process(delta):
 	var click_x := int(last_click_position.x)
 	var click_y := int(last_click_position.y)
 	if delta != 0:
-		text = "FPS: " + str((1/delta))
+		text = "FPS: " + str(Engine.get_frames_per_second())
 		text += "\nMouse Position: " + str(mouse_x) + ", " + str(mouse_y)
 		text += "\nLast Click: " + str(click_x) + ", " + str(click_y)
 
