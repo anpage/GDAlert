@@ -5,11 +5,10 @@ signal started_scrolling(pos)
 signal stopped_scrolling()
 signal mouse_moved(pos)
 signal mouse_clicked(pos)
+signal texture_resized(size)
 
 export var game_speed: float = 1.0
 
-var game_size := Vector2(0, 0)
-var game_image := Image.new()
 var game_palette_image := Image.new()
 var game_palette_texture := ImageTexture.new()
 var has_selected := false
@@ -63,6 +62,7 @@ func _play_sound(event):
 
 
 func _ready():
+	var game_image := Image.new()
 	game_image.create(256, 256, false, Image.FORMAT_L8)
 	game_image.fill(Color(1, 0, 0, 1))
 
@@ -97,6 +97,7 @@ func _process(delta):
 	game_palette_texture.set_data(game_palette_image)
 
 	var _got_data = texture.get_visible_page()
+	emit_signal("texture_resized", texture.get_size())
 
 
 func _gui_input(event):

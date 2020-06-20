@@ -1,12 +1,10 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://debug_assets/debug_overlay.gd" type="Script" id=1]
 [ext_resource path="res://in_game/tac_view/tac_view.gd" type="Script" id=2]
-[ext_resource path="res://depalettize.shader" type="Shader" id=3]
+[ext_resource path="res://in_game/tac_view/depalettize.shader" type="Shader" id=3]
 [ext_resource path="res://in_game/tac_view/rubber_band.tscn" type="PackedScene" id=4]
 [ext_resource path="res://debug_assets/cell_mask.png" type="Texture" id=5]
-[ext_resource path="res://in_game/tac_view/red_alert_placeholder.png" type="Texture" id=6]
-[ext_resource path="res://in_game/tac_view/tac_view_camera.gd" type="Script" id=7]
 
 [sub_resource type="ShaderMaterial" id=1]
 shader = ExtResource( 3 )
@@ -14,7 +12,6 @@ shader = ExtResource( 3 )
 [node name="TacView" type="TextureRect"]
 material = SubResource( 1 )
 mouse_filter = 0
-texture = ExtResource( 6 )
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -22,12 +19,6 @@ __meta__ = {
 
 [node name="Rubberband" parent="." instance=ExtResource( 4 )]
 mouse_filter = 1
-
-[node name="Camera" type="Camera2D" parent="."]
-anchor_mode = 0
-current = true
-zoom = Vector2( 0.5, 0.5 )
-script = ExtResource( 7 )
 
 [node name="DebugCellGrid" type="TextureRect" parent="."]
 visible = false
@@ -45,6 +36,7 @@ __meta__ = {
 }
 
 [node name="DebugOverlay" type="Control" parent="."]
+visible = false
 margin_right = 40.0
 margin_bottom = 40.0
 mouse_filter = 2
@@ -52,7 +44,4 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
-[connection signal="mouse_moved" from="." to="Camera" method="_on_mouse_moved"]
-[connection signal="started_scrolling" from="." to="Camera" method="_on_started_scrolling"]
-[connection signal="stopped_scrolling" from="." to="Camera" method="_on_stopped_scrolling"]
 [connection signal="select_rect_finish" from="Rubberband" to="." method="_on_select_rect_finish"]

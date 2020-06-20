@@ -3,6 +3,7 @@ extends RichTextLabel
 
 var mouse_position := Vector2(0, 0)
 var last_click_position := Vector2(0, 0)
+var viewport_rect := Rect2(0, 0, 0, 0)
 
 
 func _process(delta):
