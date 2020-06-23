@@ -1,6 +1,9 @@
 extends Control
 
 
+export var color := Color(1.0, 1.0, 1.0) setget set_color
+var fill_color := Color(1.0, 1.0, 1.0, 0.5)
+
 var is_mouse_down = false
 var is_selecting = false
 var rect = Rect2(0, 0, 0, 0)
@@ -10,7 +13,8 @@ signal select_rect_finish(p1, p2)
 
 func _draw():
 	if (is_selecting):
-		draw_rect(rect, Color(1, 1, 1, 0.5))
+		draw_rect(rect, fill_color)
+		draw_rect(rect, color, false)
 
 
 func _gui_input(event):
@@ -36,3 +40,10 @@ func _gui_input(event):
 				if abs(rect.size.x) >= 4 or abs(rect.size.y) >= 4:
 					is_selecting = true
 			update()
+
+
+func set_color(in_color: Color):
+	color = in_color
+	color.a = 1.0 * in_color.a
+	fill_color = in_color
+	fill_color.a = 0.5 * in_color.a
