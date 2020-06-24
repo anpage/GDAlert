@@ -1,4 +1,5 @@
 extends RichTextLabel
+# Displays some useful information about the game state
 
 
 var mouse_position := Vector2(0, 0)
@@ -16,8 +17,10 @@ func _process(delta):
 		text += "\nMouse Position: " + str(mouse_x) + ", " + str(mouse_y)
 		text += "\nLast Click: " + str(click_x) + ", " + str(click_y)
 
-func _on_mouse_moved(position):
+
+func _on_mouse_moved(position: Vector2):
 	mouse_position = position
 
-func _on_mouse_clicked(position):
+
+func _on_mouse_clicked(position: Vector2):
 	last_click_position = position

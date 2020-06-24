@@ -1,6 +1,9 @@
 extends Control
+# Helps visualize the game state
 
-func draw_things(things):
+
+# Takes in an array of object dicts from the native wrapper
+func draw_things(things: Array):
 	for n in get_children():
 		remove_child(n)
 		n.queue_free()

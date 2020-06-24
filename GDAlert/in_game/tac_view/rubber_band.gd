@@ -1,5 +1,8 @@
 extends Control
+# Handles the box-selection rendering and logic for TacView
 
+
+signal select_rect_finish(p1, p2)
 
 export var color := Color(1.0, 1.0, 1.0) setget set_color
 var fill_color := Color(1.0, 1.0, 1.0, 0.5)
@@ -7,8 +10,6 @@ var fill_color := Color(1.0, 1.0, 1.0, 0.5)
 var is_mouse_down = false
 var is_selecting = false
 var rect = Rect2(0, 0, 0, 0)
-
-signal select_rect_finish(p1, p2)
 
 
 func _draw():
@@ -42,8 +43,8 @@ func _gui_input(event):
 			update()
 
 
-func set_color(in_color: Color):
-	color = in_color
-	color.a = 1.0 * in_color.a
-	fill_color = in_color
-	fill_color.a = 0.5 * in_color.a
+func set_color(value: Color):
+	color = value
+	color.a = 1.0 * value.a
+	fill_color = value
+	fill_color.a = 0.5 * value.a
