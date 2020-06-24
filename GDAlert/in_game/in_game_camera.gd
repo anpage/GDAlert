@@ -5,7 +5,7 @@ export var max_bounds := Vector2(0, 0)
 
 var _is_scrolling := false
 var _scroll_start := Vector2(0, 0)
-var _sidebar_width := 120.0
+var _sidebar_width := 426.0
 
 
 func _ready():
@@ -18,10 +18,10 @@ func _process(delta):
 		var nextpos := position
 		nextpos.x += min((mouse_pos.x - _scroll_start.x) * delta * zoom.x * 8, 5)
 		nextpos.y += min((mouse_pos.y - _scroll_start.y) * delta * zoom.y * 8, 5)
-		
+
 		var min_x = (get_viewport_rect().size.x * zoom.x) / 2
 		var max_x = limit_right - (get_viewport_rect().size.x * zoom.x) / 2
-		
+
 		var min_y = (get_viewport_rect().size.y * zoom.y) / 2
 		var max_y = limit_bottom - (get_viewport_rect().size.y * zoom.y) / 2
 

@@ -15,7 +15,7 @@ namespace godot {
         GODOT_CLASS(GDNativeAlert, ImageTexture);
 
     private:
-        static const int GAME_STATE_BUFFER_SIZE = 0x20000;
+        static const int GAME_STATE_BUFFER_SIZE = 0x200000;
 
         static const int LEPTONS_PER_CELL = 256;
         static const int PIXELS_PER_CELL = 24;
@@ -27,6 +27,7 @@ namespace godot {
         CNCMapDataStruct* static_map_state_cache;
         CNCDynamicMapStruct* dynamic_map_state_cache;
         CNCShroudStruct* shroud_state_cache;
+        CNCSidebarStruct* sidebar_state_cache;
 
         unsigned char palette_cache[256][3];
 
@@ -68,6 +69,7 @@ namespace godot {
         void handle_mouse_motion(unsigned int x, unsigned int y);
         String get_cursor_name(int x, int y);
         Array get_game_objects();
+        Dictionary get_sidebar_state();
     };
 
 }

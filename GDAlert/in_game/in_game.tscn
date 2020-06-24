@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://debug_assets/debug_info_label.gd" type="Script" id=1]
 [ext_resource path="res://in_game/tac_view/tac_view.tscn" type="PackedScene" id=2]
@@ -6,6 +6,7 @@
 [ext_resource path="res://in_game/in_game_camera.gd" type="Script" id=4]
 [ext_resource path="res://in_game/in_game.gd" type="Script" id=5]
 [ext_resource path="res://in_game/tac_view/red_alert_placeholder.png" type="Texture" id=6]
+[ext_resource path="res://in_game/ui/sidebar.tscn" type="PackedScene" id=7]
 
 [sub_resource type="StyleBoxFlat" id=1]
 bg_color = Color( 0, 0, 0, 0.576471 )
@@ -21,9 +22,23 @@ __meta__ = {
 }
 
 [node name="TacView" parent="." instance=ExtResource( 2 )]
+margin_left = 0.902496
+margin_top = -0.902496
+margin_right = 1024.9
+margin_bottom = 599.098
 texture = ExtResource( 6 )
 
+[node name="GameCamera" type="Camera2D" parent="."]
+position = Vector2( 320, 180 )
+current = true
+zoom = Vector2( 0.5, 0.5 )
+script = ExtResource( 4 )
+
+[node name="ZoomTween" type="Tween" parent="GameCamera"]
+
 [node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="Sidebar" parent="HUD" instance=ExtResource( 7 )]
 
 [node name="DebugInfoLabel" type="RichTextLabel" parent="HUD"]
 margin_left = 10.0
@@ -41,14 +56,7 @@ __meta__ = {
 stream = ExtResource( 3 )
 volume_db = -10.0
 autoplay = true
-
-[node name="GameCamera" type="Camera2D" parent="."]
-position = Vector2( 256, 150 )
-current = true
-zoom = Vector2( 0.5, 0.5 )
-script = ExtResource( 4 )
-
-[node name="ZoomTween" type="Tween" parent="GameCamera"]
 [connection signal="mouse_clicked" from="TacView" to="HUD/DebugInfoLabel" method="_on_mouse_clicked"]
 [connection signal="mouse_moved" from="TacView" to="HUD/DebugInfoLabel" method="_on_mouse_moved"]
+[connection signal="sidebar_state_updated" from="TacView" to="HUD/Sidebar" method="_on_sidebar_state_updated"]
 [connection signal="texture_resized" from="TacView" to="GameCamera" method="set_bounds"]

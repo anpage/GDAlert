@@ -5,6 +5,7 @@ extends TextureRect
 signal mouse_moved(pos)
 signal mouse_clicked(pos)
 signal texture_resized(size)
+signal sidebar_state_updated(state)
 
 export var game_speed := 1.0 setget set_game_speed
 export var sfx_volume_db := -15.0
@@ -59,6 +60,10 @@ func _physics_process(_delta):
 	# Update legacy framebuffer
 	var _got_data: bool = texture.get_visible_page()
 	emit_signal("texture_resized", texture.get_size())
+
+	# Update sidebar state
+	var sidebar_state: Dictionary = texture.get_sidebar_state()
+	emit_signal("sidebar_state_updated", sidebar_state)
 
 
 func _gui_input(event):

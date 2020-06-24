@@ -91,6 +91,7 @@ void GDNativeAlert::_register_methods() {
     register_method("handle_mouse_motion", &GDNativeAlert::handle_mouse_motion);
     register_method("get_cursor_name", &GDNativeAlert::get_cursor_name);
     register_method("get_game_objects", &GDNativeAlert::get_game_objects);
+    register_method("get_sidebar_state", &GDNativeAlert::get_sidebar_state);
 
     register_signal<GDNativeAlert>("event_not_handled", "message", GODOT_VARIANT_TYPE_STRING);
     register_signal<GDNativeAlert>("sound_played", "event", GODOT_VARIANT_TYPE_DICTIONARY);
@@ -116,6 +117,7 @@ GDNativeAlert::GDNativeAlert() {
     static_map_state_cache = new CNCMapDataStruct;
     dynamic_map_state_cache = (CNCDynamicMapStruct*)new unsigned char[GAME_STATE_BUFFER_SIZE];
     shroud_state_cache = (CNCShroudStruct*)new unsigned char[GAME_STATE_BUFFER_SIZE];
+    sidebar_state_cache = (CNCSidebarStruct*)new unsigned char[GAME_STATE_BUFFER_SIZE];
 }
 
 GDNativeAlert::~GDNativeAlert() {
@@ -126,6 +128,7 @@ GDNativeAlert::~GDNativeAlert() {
     delete static_map_state_cache;
     delete[] dynamic_map_state_cache;
     delete[] shroud_state_cache;
+    delete[] sidebar_state_cache;
 }
 
 void GDNativeAlert::_init() {
@@ -373,6 +376,10 @@ bool GDNativeAlert::cache_game_state() {
     if (cached_shroud_state == false)
         return false;
 
+    bool cached_sidebar_state = CNC_Get_Game_State(GAME_STATE_SIDEBAR, player_id, (unsigned char*)sidebar_state_cache, GAME_STATE_BUFFER_SIZE);
+    if (cached_sidebar_state == false)
+        return false;
+
     if (player_id == 0) {
         bool cached_palette = CNC_Get_Palette((unsigned char(&)[256][3])palette_cache);
         if (cached_palette == false)
@@ -492,6 +499,14 @@ Array GDNativeAlert::get_game_objects() {
     }
 
     return objects;
+}
+
+Dictionary GDNativeAlert::get_sidebar_state() {
+    Dictionary sidebar_state;
+
+    sidebar_state["credits_counter"] = sidebar_state_cache->CreditsCounter;
+
+    return sidebar_state;
 }
 
 String GDNativeAlert::get_cursor_name(int x, int y) {
