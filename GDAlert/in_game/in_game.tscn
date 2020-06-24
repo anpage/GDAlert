@@ -39,6 +39,7 @@ script = ExtResource( 4 )
 [node name="HUD" type="CanvasLayer" parent="."]
 
 [node name="Sidebar" parent="HUD" instance=ExtResource( 7 )]
+mouse_filter = 0
 
 [node name="DebugInfoLabel" type="RichTextLabel" parent="HUD"]
 margin_left = 10.0
@@ -57,6 +58,8 @@ stream = ExtResource( 3 )
 volume_db = -10.0
 autoplay = true
 [connection signal="mouse_clicked" from="TacView" to="HUD/DebugInfoLabel" method="_on_mouse_clicked"]
+[connection signal="mouse_entered" from="TacView" to="TacView" method="_on_TacView_mouse_entered"]
+[connection signal="mouse_exited" from="TacView" to="TacView" method="_on_TacView_mouse_exited"]
 [connection signal="mouse_moved" from="TacView" to="HUD/DebugInfoLabel" method="_on_mouse_moved"]
 [connection signal="sidebar_state_updated" from="TacView" to="HUD/Sidebar" method="_on_sidebar_state_updated"]
 [connection signal="texture_resized" from="TacView" to="GameCamera" method="set_bounds"]

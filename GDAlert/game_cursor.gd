@@ -3,7 +3,8 @@ extends Node
 
 
 # Data file that contains metadata about cursor textures
-export var data_file_path = "res://mouse_default.json"
+export var data_file_path := "res://mouse_default.json"
+export var cursor_in_tacview := false setget set_cursor_in_tacview
 
 var _mouse_control: Dictionary
 var _textures: Dictionary
@@ -45,6 +46,9 @@ func _process(delta):
 
 
 func set_cursor(name):
+	if not cursor_in_tacview:
+		return
+
 	if _is_loaded and name != _cursor_name:
 		_cursor_name = name
 		var control_data: Dictionary = _mouse_control["control_data"]
@@ -59,6 +63,12 @@ func set_cursor(name):
 
 		var cursor_texture := _texture.get_frame_texture(0)
 		Input.set_custom_mouse_cursor(cursor_texture, 0, _hotspot)
+
+
+func set_cursor_in_tacview(value):
+	if not value:
+		set_cursor("MOUSE_NORMAL")
+	cursor_in_tacview = value
 
 
 func _load_cursors():

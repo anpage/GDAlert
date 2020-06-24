@@ -156,3 +156,11 @@ func _play_sound(event):
 		player.play()
 		yield(player, "finished")
 		player.queue_free()
+
+
+func _on_TacView_mouse_entered():
+	GameCursor.cursor_in_tacview = true
+
+
+func _on_TacView_mouse_exited():
+	GameCursor.cursor_in_tacview = false
