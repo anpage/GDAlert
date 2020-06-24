@@ -576,6 +576,8 @@ CNCObjectStruct* GDNativeAlert::get_nearest_object(int x, int y) {
     for (int i = 0; i < game_state_cache->Count; i++) {
         CNCObjectStruct* object = game_state_cache->Objects + i;
 
+        if (!object->IsSelectable && object->Type != TERRAIN) continue;
+
         // Ignore objects that aren't visible
         if (!(object->VisibleFlags & (1 << player_state_cache->House))) continue;
 
