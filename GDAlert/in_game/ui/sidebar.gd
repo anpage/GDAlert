@@ -8,6 +8,8 @@ signal cameo_construction_placement_started(buildable_type, buildable_id)
 
 var money := 0
 
+onready var CameoButtonScene = preload("res://in_game/ui/cameo_button.tscn")
+
 onready var money_label: Label = $SidebarContainer/Header/MarginContainer/Money
 
 
@@ -39,15 +41,13 @@ func _on_sidebar_state_updated(state):
 			current_cameo.completed = entry["completed"]
 			current_cameo.constructing = entry["constructing"]
 			current_cameo.on_hold = entry["construction_on_hold"]
+			current_cameo.progress = entry["progress"]
 
 		else:
-			var cameo := CameoButton.new()
+			var cameo = CameoButtonScene.instance() as CameoButton
 
 			# Button stuff
 			cameo.text = entry["asset_name"]
-			cameo.size_flags_horizontal = SIZE_EXPAND_FILL
-			cameo.rect_min_size = Vector2(0, 100)
-			cameo.focus_mode = Control.FOCUS_NONE
 
 			# Cameo stuff
 			cameo.buildable_id = id
@@ -55,6 +55,7 @@ func _on_sidebar_state_updated(state):
 			cameo.completed = entry["completed"]
 			cameo.constructing = entry["constructing"]
 			cameo.on_hold = entry["construction_on_hold"]
+			cameo.progress = entry["progress"]
 
 			# Signals
 			var _connected = cameo.connect("cameo_construction_started", self, "_on_cameo_construction_started")
