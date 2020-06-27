@@ -164,3 +164,19 @@ func _on_TacView_mouse_entered():
 
 func _on_TacView_mouse_exited():
 	GameCursor.cursor_in_tacview = false
+
+
+func _on_cameo_construction_started(buildable_type, buildable_id):
+	texture.start_construction(buildable_type, buildable_id)
+
+
+func _on_cameo_construction_canceled(buildable_type, buildable_id):
+	texture.cancel_construction(buildable_type, buildable_id)
+
+
+func _on_cameo_construction_held(buildable_type, buildable_id):
+	texture.hold_construction(buildable_type, buildable_id)
+
+
+func _on_cameo_construction_placement_started(buildable_type, buildable_id):
+	texture.start_construction_placement(buildable_type, buildable_id)

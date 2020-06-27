@@ -70,6 +70,10 @@ namespace godot {
         String get_cursor_name(int x, int y);
         Array get_game_objects();
         Dictionary get_sidebar_state();
+        void start_construction(int buildable_type, int buildable_id);
+        void hold_construction(int buildable_type, int buildable_id);
+        void cancel_construction(int buildable_type, int buildable_id);
+        void start_construction_placement(int buildable_type, int buildable_id);
     };
 
 }

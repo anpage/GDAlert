@@ -92,6 +92,10 @@ void GDNativeAlert::_register_methods() {
     register_method("get_cursor_name", &GDNativeAlert::get_cursor_name);
     register_method("get_game_objects", &GDNativeAlert::get_game_objects);
     register_method("get_sidebar_state", &GDNativeAlert::get_sidebar_state);
+    register_method("start_construction", &GDNativeAlert::start_construction);
+    register_method("hold_construction", &GDNativeAlert::hold_construction);
+    register_method("cancel_construction", &GDNativeAlert::cancel_construction);
+    register_method("start_construction_placement", &GDNativeAlert::start_construction_placement);
 
     register_signal<GDNativeAlert>("event_not_handled", "message", GODOT_VARIANT_TYPE_STRING);
     register_signal<GDNativeAlert>("sound_played", "event", GODOT_VARIANT_TYPE_DICTIONARY);
@@ -506,7 +510,53 @@ Dictionary GDNativeAlert::get_sidebar_state() {
 
     sidebar_state["credits_counter"] = sidebar_state_cache->CreditsCounter;
 
+    Array sidebar_entries;
+    int entry_count = sidebar_state_cache->EntryCount[0] + sidebar_state_cache->EntryCount[1];
+    for (int i = 0; i < entry_count; i++) {
+        CNCSidebarEntryStruct entry = sidebar_state_cache->Entries[i];
+
+        Dictionary entry_dict;
+
+        entry_dict["asset_name"] = entry.AssetName;
+        entry_dict["buildable_type"] = entry.BuildableType;
+        entry_dict["buildable_id"] = entry.BuildableID;
+        entry_dict["type"] = entry.Type;
+        entry_dict["superweapon_type"] = entry.SuperWeaponType;
+        entry_dict["cost"] = entry.Cost;
+        entry_dict["power_provided"] = entry.PowerProvided;
+        entry_dict["build_time"] = entry.BuildTime;
+        entry_dict["progress"] = entry.Progress;
+
+        // TODO: Placement List?
+
+        entry_dict["completed"] = entry.Completed;
+        entry_dict["constructing"] = entry.Constructing;
+        entry_dict["construction_on_hold"] = entry.ConstructionOnHold;
+        entry_dict["busy"] = entry.Busy;
+        entry_dict["buildable_via_capture"] = entry.BuildableType;
+        entry_dict["fake"] = entry.Fake;
+
+        sidebar_entries.push_front(entry_dict);
+    }
+    sidebar_state["entries"] = sidebar_entries;
+
     return sidebar_state;
+}
+
+void GDNativeAlert::start_construction(int buildable_type, int buildable_id) {
+    CNC_Handle_Sidebar_Request(SIDEBAR_REQUEST_START_CONSTRUCTION, player_id, buildable_type, buildable_id, NULL, NULL);
+}
+
+void GDNativeAlert::hold_construction(int buildable_type, int buildable_id) {
+    CNC_Handle_Sidebar_Request(SIDEBAR_REQUEST_HOLD_CONSTRUCTION, player_id, buildable_type, buildable_id, NULL, NULL);
+}
+
+void GDNativeAlert::cancel_construction(int buildable_type, int buildable_id) {
+    CNC_Handle_Sidebar_Request(SIDEBAR_REQUEST_CANCEL_CONSTRUCTION, player_id, buildable_type, buildable_id, NULL, NULL);
+}
+
+void GDNativeAlert::start_construction_placement(int buildable_type, int buildable_id) {
+    CNC_Handle_Sidebar_Request(SIDEBAR_REQUEST_START_PLACEMENT, player_id, buildable_type, buildable_id, NULL, NULL);
 }
 
 String GDNativeAlert::get_cursor_name(int x, int y) {

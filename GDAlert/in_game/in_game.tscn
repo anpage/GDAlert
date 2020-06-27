@@ -22,10 +22,8 @@ __meta__ = {
 }
 
 [node name="TacView" parent="." instance=ExtResource( 2 )]
-margin_left = 0.902496
-margin_top = -0.902496
-margin_right = 1024.9
-margin_bottom = 599.098
+margin_right = 1024.0
+margin_bottom = 600.0
 texture = ExtResource( 6 )
 
 [node name="GameCamera" type="Camera2D" parent="."]
@@ -33,6 +31,9 @@ position = Vector2( 320, 180 )
 current = true
 zoom = Vector2( 0.5, 0.5 )
 script = ExtResource( 4 )
+__meta__ = {
+"_edit_lock_": true
+}
 
 [node name="ZoomTween" type="Tween" parent="GameCamera"]
 
@@ -63,3 +64,7 @@ autoplay = true
 [connection signal="mouse_moved" from="TacView" to="HUD/DebugInfoLabel" method="_on_mouse_moved"]
 [connection signal="sidebar_state_updated" from="TacView" to="HUD/Sidebar" method="_on_sidebar_state_updated"]
 [connection signal="texture_resized" from="TacView" to="GameCamera" method="set_bounds"]
+[connection signal="cameo_construction_canceled" from="HUD/Sidebar" to="TacView" method="_on_cameo_construction_canceled"]
+[connection signal="cameo_construction_held" from="HUD/Sidebar" to="TacView" method="_on_cameo_construction_held"]
+[connection signal="cameo_construction_placement_started" from="HUD/Sidebar" to="TacView" method="_on_cameo_construction_placement_started"]
+[connection signal="cameo_construction_started" from="HUD/Sidebar" to="TacView" method="_on_cameo_construction_started"]

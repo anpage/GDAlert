@@ -5,15 +5,15 @@
 [ext_resource path="res://in_game/ui/common.tres" type="DynamicFont" id=3]
 [ext_resource path="res://in_game/ui/sidebar.gd" type="Script" id=4]
 
-[sub_resource type="StyleBoxEmpty" id=4]
-
-[sub_resource type="StyleBoxFlat" id=5]
-bg_color = Color( 0, 0, 0, 1 )
+[sub_resource type="StyleBoxEmpty" id=1]
 
 [sub_resource type="StyleBoxFlat" id=2]
-bg_color = Color( 0.188235, 0.407843, 0.054902, 1 )
+bg_color = Color( 0, 0, 0, 1 )
 
 [sub_resource type="StyleBoxFlat" id=3]
+bg_color = Color( 0.188235, 0.407843, 0.054902, 1 )
+
+[sub_resource type="StyleBoxFlat" id=4]
 
 [node name="Sidebar" type="Panel"]
 anchor_left = 1.0
@@ -22,6 +22,8 @@ anchor_bottom = 1.0
 margin_left = -426.0
 rect_min_size = Vector2( 426, 0 )
 mouse_filter = 2
+size_flags_horizontal = 0
+size_flags_vertical = 3
 script = ExtResource( 4 )
 __meta__ = {
 "_edit_lock_": true,
@@ -39,7 +41,7 @@ __meta__ = {
 [node name="Header" type="PanelContainer" parent="SidebarContainer"]
 margin_right = 426.0
 margin_bottom = 40.0
-custom_styles/panel = SubResource( 4 )
+custom_styles/panel = SubResource( 1 )
 
 [node name="MarginContainer" type="MarginContainer" parent="SidebarContainer/Header"]
 margin_right = 426.0
@@ -78,7 +80,7 @@ margin_top = 44.0
 margin_right = 426.0
 margin_bottom = 470.0
 rect_min_size = Vector2( 0, 426 )
-custom_styles/panel = SubResource( 5 )
+custom_styles/panel = SubResource( 2 )
 __meta__ = {
 "_edit_lock_": true
 }
@@ -153,7 +155,7 @@ text = "Radar"
 [node name="PowerAndProductionMargin" type="MarginContainer" parent="SidebarContainer"]
 margin_top = 542.0
 margin_right = 426.0
-margin_bottom = 954.0
+margin_bottom = 720.0
 size_flags_vertical = 3
 custom_constants/margin_right = 4
 __meta__ = {
@@ -162,7 +164,7 @@ __meta__ = {
 
 [node name="PowerAndProduction" type="HBoxContainer" parent="SidebarContainer/PowerAndProductionMargin"]
 margin_right = 422.0
-margin_bottom = 412.0
+margin_bottom = 178.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 custom_constants/separation = 4
@@ -172,11 +174,11 @@ __meta__ = {
 
 [node name="PowerMeter" type="Panel" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction"]
 margin_right = 24.0
-margin_bottom = 412.0
+margin_bottom = 178.0
 grow_vertical = 2
 rect_min_size = Vector2( 24, 0 )
 size_flags_vertical = 3
-custom_styles/panel = SubResource( 2 )
+custom_styles/panel = SubResource( 3 )
 __meta__ = {
 "_edit_lock_": true
 }
@@ -184,7 +186,7 @@ __meta__ = {
 [node name="Production" type="VBoxContainer" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction"]
 margin_left = 28.0
 margin_right = 422.0
-margin_bottom = 412.0
+margin_bottom = 178.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 __meta__ = {
@@ -205,145 +207,39 @@ __meta__ = {
 margin_right = 95.0
 margin_bottom = 32.0
 size_flags_horizontal = 3
-custom_styles/panel = SubResource( 3 )
+custom_styles/panel = SubResource( 4 )
 
 [node name="Infantry" type="Panel" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionTabs"]
 margin_left = 99.0
 margin_right = 194.0
 margin_bottom = 32.0
 size_flags_horizontal = 3
-custom_styles/panel = SubResource( 3 )
+custom_styles/panel = SubResource( 4 )
 
 [node name="Vehicles" type="Panel" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionTabs"]
 margin_left = 198.0
 margin_right = 293.0
 margin_bottom = 32.0
 size_flags_horizontal = 3
-custom_styles/panel = SubResource( 3 )
+custom_styles/panel = SubResource( 4 )
 
 [node name="Weapons" type="Panel" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionTabs"]
 margin_left = 297.0
 margin_right = 394.0
 margin_bottom = 32.0
 size_flags_horizontal = 3
-custom_styles/panel = SubResource( 3 )
+custom_styles/panel = SubResource( 4 )
 
-[node name="ProductionCameos" type="GridContainer" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production"]
+[node name="ProductionScroll" type="ScrollContainer" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production"]
 margin_right = 394.0
-margin_bottom = 412.0
+margin_bottom = 178.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+scroll_horizontal_enabled = false
+
+[node name="ProductionCameos" type="GridContainer" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionScroll"]
+margin_right = 394.0
+margin_bottom = 178.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 columns = 3
-
-[node name="Building" type="Button" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionCameos"]
-margin_right = 128.0
-margin_bottom = 100.0
-rect_min_size = Vector2( 0, 100 )
-focus_mode = 0
-size_flags_horizontal = 3
-enabled_focus_mode = 0
-
-[node name="Building2" type="Button" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionCameos"]
-margin_left = 132.0
-margin_right = 260.0
-margin_bottom = 100.0
-rect_min_size = Vector2( 0, 100 )
-focus_mode = 0
-size_flags_horizontal = 3
-enabled_focus_mode = 0
-
-[node name="Building3" type="Button" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionCameos"]
-margin_left = 264.0
-margin_right = 392.0
-margin_bottom = 100.0
-rect_min_size = Vector2( 0, 100 )
-focus_mode = 0
-size_flags_horizontal = 3
-enabled_focus_mode = 0
-
-[node name="Building4" type="Button" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionCameos"]
-margin_top = 104.0
-margin_right = 128.0
-margin_bottom = 204.0
-rect_min_size = Vector2( 0, 100 )
-focus_mode = 0
-size_flags_horizontal = 3
-enabled_focus_mode = 0
-
-[node name="Building5" type="Button" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionCameos"]
-margin_left = 132.0
-margin_top = 104.0
-margin_right = 260.0
-margin_bottom = 204.0
-rect_min_size = Vector2( 0, 100 )
-focus_mode = 0
-size_flags_horizontal = 3
-enabled_focus_mode = 0
-
-[node name="Building6" type="Button" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionCameos"]
-margin_left = 264.0
-margin_top = 104.0
-margin_right = 392.0
-margin_bottom = 204.0
-rect_min_size = Vector2( 0, 100 )
-focus_mode = 0
-size_flags_horizontal = 3
-enabled_focus_mode = 0
-
-[node name="Building12" type="Button" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionCameos"]
-margin_top = 208.0
-margin_right = 128.0
-margin_bottom = 308.0
-rect_min_size = Vector2( 0, 100 )
-focus_mode = 0
-size_flags_horizontal = 3
-enabled_focus_mode = 0
-
-[node name="Building11" type="Button" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionCameos"]
-margin_left = 132.0
-margin_top = 208.0
-margin_right = 260.0
-margin_bottom = 308.0
-rect_min_size = Vector2( 0, 100 )
-focus_mode = 0
-size_flags_horizontal = 3
-enabled_focus_mode = 0
-
-[node name="Building10" type="Button" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionCameos"]
-margin_left = 264.0
-margin_top = 208.0
-margin_right = 392.0
-margin_bottom = 308.0
-rect_min_size = Vector2( 0, 100 )
-focus_mode = 0
-size_flags_horizontal = 3
-enabled_focus_mode = 0
-
-[node name="Building9" type="Button" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionCameos"]
-margin_top = 312.0
-margin_right = 128.0
-margin_bottom = 412.0
-rect_min_size = Vector2( 0, 100 )
-focus_mode = 0
-size_flags_horizontal = 3
-enabled_focus_mode = 0
-
-[node name="Building8" type="Button" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionCameos"]
-margin_left = 132.0
-margin_top = 312.0
-margin_right = 260.0
-margin_bottom = 412.0
-rect_min_size = Vector2( 0, 100 )
-focus_mode = 0
-size_flags_horizontal = 3
-enabled_focus_mode = 0
-
-[node name="Building7" type="Button" parent="SidebarContainer/PowerAndProductionMargin/PowerAndProduction/Production/ProductionCameos"]
-margin_left = 264.0
-margin_top = 312.0
-margin_right = 392.0
-margin_bottom = 412.0
-rect_min_size = Vector2( 0, 100 )
-focus_mode = 0
-size_flags_horizontal = 3
-enabled_focus_mode = 0
