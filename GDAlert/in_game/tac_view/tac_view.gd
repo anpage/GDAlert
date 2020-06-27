@@ -16,7 +16,7 @@ var has_selected := false
 
 
 func _ready():
-	Engine.iterations_per_second = int(30 / game_speed)
+	Engine.iterations_per_second = int(30 * game_speed)
 
 	# Create placeholder image before the in-game framebuffer is read
 	var game_image := Image.new()
